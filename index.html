@@ -304,8 +304,23 @@ function showToast(msg) {
   el.textContent = msg; el.classList.add('show');
   clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 1800);
 }
-function toBase64(str) { return btoa(String.fromCharCode(...new TextEncoder().encode(str))); }
-function fromBase64(b64) { return new TextDecoder().decode(Uint8Array.from(atob(b64.replace(/\s/g,'')), c => c.charCodeAt(0))); }
+function toBase64(str) {
+  const bytes = new TextEncoder().encode(str);
+  let bin = ''; for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+function fromBase64(b64) {
+  const clean = b64.replace(/\s/g,'');
+  // Try TextDecoder first (new encoding)
+  try {
+    const bytes = Uint8Array.from(atob(clean), c => c.charCodeAt(0));
+    const str = new TextDecoder().decode(bytes);
+    JSON.parse(str); // validate
+    return str;
+  } catch {}
+  // Fallback: old escape/unescape encoding (for legacy data)
+  return decodeURIComponent(escape(atob(clean)));
+}
 function formatDate(d) {
   const t = today();
   if (d === t) return '今天';
