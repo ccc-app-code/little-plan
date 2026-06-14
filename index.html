@@ -147,11 +147,21 @@ main{padding:16px;padding-bottom:100px;max-width:600px;margin:0 auto}
 .data-tools{background:var(--card);border-radius:var(--radius);padding:16px;margin-top:14px;box-shadow:var(--shadow)}
 .data-tools h3{font-size:15px;margin-bottom:6px}
 .data-tools-hint{font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5}
-.data-tools-btns{display:flex;gap:10px}
+.data-tools-btns{display:flex;gap:10px;flex-wrap:wrap}
+.gh-config{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.gh-config input{flex:1;min-width:100px;padding:8px 10px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;outline:none;transition:var(--transition)}
+.gh-config input:focus{border-color:var(--ocean)}
+.gh-config button{padding:8px 14px;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:var(--transition);white-space:nowrap}
 .btn-tool-export,.btn-tool-import{padding:10px 18px;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:var(--transition)}
 .btn-tool-export{background:var(--ocean);color:#fff}
 .btn-tool-import{background:var(--forest);color:#fff}
+.btn-tool-outline{padding:10px 18px;border:1.5px solid var(--border);border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;transition:var(--transition);background:var(--card);color:var(--text)}
+.btn-tool-outline:hover{border-color:var(--ocean)}
 .btn-tool-export:hover,.btn-tool-import:hover{opacity:0.85}
+.gh-status{font-size:12px;margin-top:8px;min-height:18px;color:var(--muted)}
+.auto-sync-toggle{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;padding:10px 16px;border:1.5px solid var(--border);border-radius:12px;background:var(--card);transition:var(--transition)}
+.auto-sync-toggle:hover{border-color:var(--ocean)}
+.auto-sync-toggle input[type="checkbox"]{width:18px;height:18px;accent-color:var(--ocean)}
 </style>
 </head>
 <body>
@@ -230,6 +240,7 @@ const DB = {
   },
   set(key, val) {
     localStorage.setItem('ct_' + key, JSON.stringify(val));
+    if (typeof autoSync !== 'undefined') autoSync();
   },
   users()     { return DB.get('users', [
     { id: 1, name: '小毛', avatar: '⛰️', color: '#6B705C' },
@@ -495,31 +506,156 @@ function renderStats() {
     ${Object.entries(byCategory).map(([cat,d])=>{const p=d.total>0?Math.round(d.completed/d.total*100):0; return `<div class="cat-row"><span class="cat-name">${cat}</span><div class="cat-bar-wrap"><div class="cat-bar-fill" style="width:${p}%;background:${colors[cat]||'#b2bec3'}"></div></div><span class="cat-pct">${p}%</span></div>`}).join('')}
   </div>
   <div class="data-tools">
-    <h3>💾 数据备份</h3>
-    <p class="data-tools-hint">导出 JSON 文件可提交到 GitHub 备份；另一台手机下载后导入即可同步</p>
+    <h3>☁️ GitHub 自动同步</h3>
+    <p class="data-tools-hint">配置后点「同步到 GitHub」，数据自动上传到仓库 backup.json；另一台手机点「加载」即可同步。Token 仅存本机 localStorage。</p>
+    <div class="gh-config">
+      <input type="text" id="gh-owner" placeholder="GitHub 用户名" maxlength="40">
+      <input type="text" id="gh-repo" placeholder="仓库名" maxlength="40">
+      <input type="password" id="gh-token" placeholder="Token (ghp_...)" maxlength="100">
+      <button id="btn-gh-save" class="btn-tool-export">保存配置</button>
+    </div>
     <div class="data-tools-btns">
-      <button id="btn-export" class="btn-tool-export">📤 导出数据</button>
-      <button id="btn-import" class="btn-tool-import">📥 导入数据</button>
+      <button id="btn-gh-push" class="btn-tool-export">☁️ 同步到 GitHub</button>
+      <button id="btn-gh-pull" class="btn-tool-import">☁️ 从 GitHub 加载</button>
+    </div>
+    <div class="data-tools-btns" style="margin-top:8px;">
+      <button id="btn-export" class="btn-tool-outline">📤 导出文件</button>
+      <button id="btn-import" class="btn-tool-outline">📥 导入文件</button>
     </div>
     <input type="file" id="import-file-input" accept=".json" style="display:none">
+    <div class="data-tools-btns" style="margin-top:8px;">
+      <label class="auto-sync-toggle"><input type="checkbox" id="cb-auto-sync"> 🔄 自动同步到 GitHub</label>
+    </div>
+    <p id="gh-status" class="gh-status"></p>
   </div>`;
   bindExportImport();
 }
 
 function bindExportImport() {
+  const ghOwner = document.getElementById('gh-owner');
+  const ghRepo = document.getElementById('gh-repo');
+  const ghToken = document.getElementById('gh-token');
+  const ghStatus = document.getElementById('gh-status');
   const exportBtn = document.getElementById('btn-export');
   const importBtn = document.getElementById('btn-import');
   const fileInput = document.getElementById('import-file-input');
-  if (!exportBtn || !importBtn) return;
 
-  exportBtn.addEventListener('click', () => {
-    const data = {
+  // Load saved config
+  const saved = JSON.parse(localStorage.getItem('ct_gh_config') || '{}');
+  if (ghOwner) ghOwner.value = saved.owner || '';
+  if (ghRepo) ghRepo.value = saved.repo || '';
+  if (ghToken) ghToken.value = saved.token || '';
+
+  function status(msg, ok) {
+    if (ghStatus) { ghStatus.textContent = msg; ghStatus.style.color = ok ? '#5B8C6F' : '#c0392b'; }
+    showToast(msg);
+  }
+
+  function getConfig() {
+    const owner = (ghOwner?.value || '').trim();
+    const repo = (ghRepo?.value || '').trim();
+    const token = (ghToken?.value || '').trim();
+    if (!owner || !repo || !token) { status('请先填写 GitHub 配置', false); return null; }
+    return { owner, repo, token };
+  }
+
+  function buildBackupData() {
+    return {
       users: DB.users(),
       defaultTodos: DB.defaultTodos(),
       todos: DB.todos(),
       plans: DB.plans(),
       exportedAt: new Date().toISOString(),
     };
+  }
+
+  function restoreData(data) {
+    if (!data.todos && !data.plans) throw new Error('无效的备份文件');
+    if (data.users) DB.set('users', data.users);
+    if (data.defaultTodos) DB.set('defaultTodos', data.defaultTodos);
+    if (data.todos) DB.set('todos', data.todos);
+    if (data.plans) DB.set('plans', data.plans);
+  }
+
+  // Save config
+  document.getElementById('btn-gh-save')?.addEventListener('click', () => {
+    const cfg = { owner: ghOwner.value.trim(), repo: ghRepo.value.trim(), token: ghToken.value.trim() };
+    if (!cfg.owner || !cfg.repo || !cfg.token) { status('请完整填写三项', false); return; }
+    localStorage.setItem('ct_gh_config', JSON.stringify(cfg));
+    status('配置已保存 ✓', true);
+  });
+
+  // Push to GitHub
+  document.getElementById('btn-gh-push')?.addEventListener('click', async () => {
+    const cfg = getConfig(); if (!cfg) return;
+    ghStatus.textContent = '正在上传...';
+    try {
+      const data = buildBackupData();
+      const jsonStr = JSON.stringify(data, null, 2);
+      const base64 = btoa(unescape(encodeURIComponent(jsonStr)));
+
+      // Get current file sha (if exists)
+      let sha = null;
+      try {
+        const getRes = await fetch(
+          `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/backup.json`,
+          { headers: { Authorization: `Bearer ${cfg.token}`, Accept: 'application/vnd.github+json' } }
+        );
+        if (getRes.ok) { const f = await getRes.json(); sha = f.sha; }
+      } catch {}
+
+      const body = { message: `backup ${today()}`, content: base64 };
+      if (sha) body.sha = sha;
+
+      const res = await fetch(
+        `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/backup.json`,
+        {
+          method: 'PUT',
+          headers: { Authorization: `Bearer ${cfg.token}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        }
+      );
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || `HTTP ${res.status}`);
+      }
+      status('已同步到 GitHub ✓', true);
+    } catch (err) {
+      status('同步失败: ' + err.message, false);
+    }
+  });
+
+  // Pull from GitHub
+  document.getElementById('btn-gh-pull')?.addEventListener('click', async () => {
+    const cfg = getConfig(); if (!cfg) return;
+    ghStatus.textContent = '正在加载...';
+    try {
+      const res = await fetch(
+        `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/backup.json`,
+        { headers: { Authorization: `Bearer ${cfg.token}`, Accept: 'application/vnd.github+json' } }
+      );
+      if (!res.ok) throw new Error('未找到 backup.json，请先同步上传一次');
+      const file = await res.json();
+      const jsonStr = decodeURIComponent(escape(atob(file.content.replace(/\s/g, ''))));
+      const data = JSON.parse(jsonStr);
+      if (!confirm(
+        `从 GitHub 加载数据？\n\n` +
+        `待办: ${(data.todos||[]).length} 条\n` +
+        `计划: ${(data.plans||[]).length} 条\n` +
+        `时间: ${data.exportedAt||'未知'}\n\n` +
+        `⚠ 当前数据将被覆盖！`
+      )) { ghStatus.textContent = ''; return; }
+      restoreData(data);
+      status('已从 GitHub 加载 ✓', true);
+      renderStats(); renderToday();
+    } catch (err) {
+      status('加载失败: ' + err.message, false);
+    }
+  });
+
+  // File export
+  exportBtn?.addEventListener('click', () => {
+    const data = buildBackupData();
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -527,40 +663,81 @@ function bindExportImport() {
     a.download = `backup-${today()}.json`;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    showToast('数据已导出 ✓');
+    showToast('文件已导出 ✓');
   });
 
-  importBtn.addEventListener('click', () => fileInput.click());
-
-  fileInput.addEventListener('change', () => {
+  // File import
+  importBtn?.addEventListener('click', () => fileInput.click());
+  fileInput?.addEventListener('change', () => {
     const file = fileInput.files[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
         const data = JSON.parse(e.target.result);
-        if (!data.todos && !data.plans) throw new Error('无效的备份文件');
         if (!confirm(
-          `确认导入？\n\n` +
-          `待办: ${(data.todos||[]).length} 条\n` +
-          `计划: ${(data.plans||[]).length} 条\n` +
-          `导出时间: ${data.exportedAt||'未知'}\n\n` +
-          `⚠ 当前数据将被覆盖！`
+          `确认导入？\n\n待办: ${(data.todos||[]).length} 条 · 计划: ${(data.plans||[]).length} 条\n时间: ${data.exportedAt||'未知'}\n\n⚠ 当前数据将被覆盖！`
         )) return;
-        if (data.users) DB.set('users', data.users);
-        if (data.defaultTodos) DB.set('defaultTodos', data.defaultTodos);
-        if (data.todos) DB.set('todos', data.todos);
-        if (data.plans) DB.set('plans', data.plans);
+        restoreData(data);
         showToast('数据已导入 ✓');
-        renderStats();
-        renderToday();
-      } catch (err) {
-        showToast('导入失败: ' + err.message);
-      }
+        renderStats(); renderToday();
+      } catch (err) { showToast('导入失败: ' + err.message); }
     };
     reader.readAsText(file);
     fileInput.value = '';
   });
+
+  // Auto-sync toggle
+  const cbAuto = document.getElementById('cb-auto-sync');
+  if (cbAuto) {
+    cbAuto.checked = _syncEnabled;
+    cbAuto.addEventListener('change', () => {
+      _syncEnabled = cbAuto.checked;
+      localStorage.setItem('ct_auto_sync', _syncEnabled ? '1' : '0');
+      if (_syncEnabled) { autoSync(); status('自动同步已开启 ✓', true); }
+      else status('自动同步已关闭', false);
+    });
+  }
+}
+
+// ── Auto-sync ───────────────────────────────────────────
+let _syncTimer = null;
+let _syncEnabled = localStorage.getItem('ct_auto_sync') === '1';
+
+window.autoSync = function() {
+  if (!_syncEnabled) return;
+  clearTimeout(_syncTimer);
+  _syncTimer = setTimeout(() => doSync(), 1500);
+};
+
+async function doSync() {
+  const saved = JSON.parse(localStorage.getItem('ct_gh_config') || '{}');
+  if (!saved.owner || !saved.repo || !saved.token) return;
+  try {
+    const data = {
+      users: DB.users(), defaultTodos: DB.defaultTodos(),
+      todos: DB.todos(), plans: DB.plans(),
+      exportedAt: new Date().toISOString(),
+    };
+    const jsonStr = JSON.stringify(data, null, 2);
+    const base64 = btoa(unescape(encodeURIComponent(jsonStr)));
+    let sha = null;
+    try {
+      const getRes = await fetch(
+        `https://api.github.com/repos/${saved.owner}/${saved.repo}/contents/backup.json`,
+        { headers: { Authorization: `Bearer ${saved.token}`, Accept: 'application/vnd.github+json' } }
+      );
+      if (getRes.ok) { const f = await getRes.json(); sha = f.sha; }
+    } catch {}
+    const body = { message: `auto-sync ${today()}`, content: base64 };
+    if (sha) body.sha = sha;
+    await fetch(
+      `https://api.github.com/repos/${saved.owner}/${saved.repo}/contents/backup.json`,
+      { method: 'PUT', headers: { Authorization: `Bearer ${saved.token}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+    );
+    const el = document.getElementById('gh-status');
+    if (el) { el.textContent = '🔄 已自动同步 ' + new Date().toLocaleTimeString('zh-CN'); el.style.color = '#5B8C6F'; }
+  } catch {}
 }
 
 // ═══════════════════════════════════════════════════════════
