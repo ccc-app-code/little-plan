@@ -305,8 +305,8 @@
       "title": "汉拿山",
       "note": "",
       "createdBy": null,
-      "done": true,
-      "doneAt": "2026-06-14T09:47:22.281Z",
+      "done": false,
+      "doneAt": null,
       "photo": null,
       "createdAt": "2026-06-14T09:43:04.854Z"
     },
@@ -321,5 +321,5 @@
       "createdAt": "2026-06-14T09:47:30.481Z"
     }
   ],
-  "exportedAt": "2026-06-14T09:48:32.962Z"
+  "exportedAt": "2026-06-14T09:48:37.325Z"
 }
