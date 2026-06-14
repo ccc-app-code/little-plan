@@ -297,6 +297,50 @@
       "completed": true,
       "completedAt": "2026-06-14T09:37:43.782Z",
       "createdAt": "2026-06-14T09:37:40.433Z"
+    },
+    {
+      "id": "mqdne5eps351",
+      "userId": 2,
+      "date": "2026-06-14",
+      "title": "下楼买菜",
+      "category": "自定义",
+      "icon": "📌",
+      "completed": true,
+      "completedAt": "2026-06-14T10:35:22.752Z",
+      "createdAt": "2026-06-14T10:35:02.497Z"
+    },
+    {
+      "id": "mqdnedjd7k6p",
+      "userId": 1,
+      "date": "2026-06-14",
+      "title": "装空调",
+      "category": "自定义",
+      "icon": "📌",
+      "completed": true,
+      "completedAt": "2026-06-14T10:35:14.017Z",
+      "createdAt": "2026-06-14T10:35:13.033Z"
+    },
+    {
+      "id": "mqdnej2tr1mu",
+      "userId": 2,
+      "date": "2026-06-14",
+      "title": "装空调",
+      "category": "自定义",
+      "icon": "📌",
+      "completed": true,
+      "completedAt": "2026-06-14T10:35:22.022Z",
+      "createdAt": "2026-06-14T10:35:20.213Z"
+    },
+    {
+      "id": "mqdnes8yoyuj",
+      "userId": 1,
+      "date": "2026-06-14",
+      "title": "工作处理",
+      "category": "自定义",
+      "icon": "📌",
+      "completed": false,
+      "completedAt": null,
+      "createdAt": "2026-06-14T10:35:32.098Z"
     }
   ],
   "plans": [
@@ -331,5 +375,5 @@
       "createdAt": "2026-06-14T10:25:46.333Z"
     }
   ],
-  "exportedAt": "2026-06-14T10:25:50.065Z"
+  "exportedAt": "2026-06-14T10:36:04.599Z"
 }
