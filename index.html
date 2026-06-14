@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>⛰️ 小毛小陈打卡</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--forest:#6B705C;--ocean:#3D7EAA;--earth:#8B7D6B;--bg:#F2EFE9;--card:#fff;--card-alt:#F7F5F0;--text:#3D3226;--muted:#8B7D6B;--border:#E0D8CC;--radius:16px;--shadow:0 2px 12px rgba(61,126,170,0.08);--transition:0.2s ease}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;overflow-x:hidden}
+
+header{background:linear-gradient(135deg,#3D7EAA,#5B8C6F);color:#fff;padding:14px 20px 12px;position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(61,126,170,0.2)}
+.header-top{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px}
+.header-icon{font-size:26px;line-height:1}
+.header-title h1{font-size:18px;font-weight:700;letter-spacing:2px}
+.header-sub{font-size:11px;opacity:0.75;font-weight:400;letter-spacing:1px;margin-top:1px}
+.header-date-row{display:flex;align-items:center;justify-content:center;gap:12px}
+.header-date-row button{background:rgba(255,255,255,0.18);border:none;color:#fff;width:34px;height:34px;border-radius:50%;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--transition)}
+.header-date-row button:hover{background:rgba(255,255,255,0.32)}
+.header-date-row .date-text{font-size:15px;font-weight:600;min-width:100px;text-align:center}
+#btn-today{font-size:12px;width:auto;padding:0 14px;border-radius:16px;font-weight:600}
+
+.tab-bar{display:flex;background:var(--card);position:sticky;top:98px;z-index:99;border-bottom:1px solid var(--border);padding:0 12px}
+.tab-bar button{flex:1;padding:14px 4px;border:none;background:none;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;position:relative;transition:var(--transition);display:flex;align-items:center;justify-content:center;gap:3px}
+.tab-bar button.active{color:var(--ocean)}
+.tab-bar button.active::after{content:'';position:absolute;bottom:0;left:20%;right:20%;height:3px;background:var(--ocean);border-radius:3px 3px 0 0}
+
+main{padding:16px;padding-bottom:100px;max-width:600px;margin:0 auto}
+.view{display:none}
+.view.active{display:block}
+
+.user-panel{background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
+.user-panel .user-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.user-panel .user-header .avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff}
+.user-panel .user-header .user-name{font-size:16px;font-weight:700}
+.user-panel .user-header .progress{margin-left:auto;font-size:13px;color:var(--muted)}
+.progress-bar{height:6px;background:var(--border);border-radius:3px;margin-bottom:12px;overflow:hidden}
+.progress-bar .fill{height:100%;border-radius:3px;transition:width 0.4s ease}
+.todo-list{list-style:none;display:flex;flex-direction:column;gap:8px}
+.todo-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:var(--bg);transition:var(--transition);cursor:pointer}
+.todo-item:hover{background:#E8F0EB}
+.todo-item.completed{opacity:0.6}
+.todo-item.completed .todo-title{text-decoration:line-through}
+.todo-item .todo-icon{font-size:18px;flex-shrink:0}
+.todo-item .todo-title{flex:1;font-size:14px}
+.todo-item .todo-category{font-size:11px;padding:2px 8px;border-radius:10px;background:var(--border);color:var(--muted);white-space:nowrap}
+.todo-item .todo-delete{background:none;border:none;color:#ccc;font-size:16px;cursor:pointer;padding:2px 4px;border-radius:4px}
+.todo-item .todo-delete:hover{color:#c0392b}
+.add-todo-form{display:flex;gap:8px;margin-top:12px}
+.add-todo-form input{flex:1;padding:10px 14px;border:2px solid var(--border);border-radius:12px;font-size:14px;outline:none;transition:var(--transition)}
+.add-todo-form input:focus{border-color:var(--ocean)}
+.add-todo-form button{padding:10px 16px;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;color:#fff;transition:var(--transition)}
+.btn-add{background:var(--ocean)}
+.btn-add:hover{opacity:0.85}
+
+.default-todos-panel{background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:14px;box-shadow:var(--shadow)}
+.default-todos-panel h3{font-size:15px;margin-bottom:10px}
+.default-todos-grid{display:flex;flex-wrap:wrap;gap:8px}
+.default-todo-chip{padding:6px 12px;border-radius:20px;border:1.5px solid var(--border);font-size:13px;cursor:pointer;transition:var(--transition);background:var(--card);display:flex;align-items:center;gap:4px;user-select:none}
+.default-todo-chip:hover{border-color:var(--ocean);background:#EDF4F8}
+.default-todo-chip.added{border-color:var(--ocean);background:#E3EEF5;color:var(--ocean)}
+.default-todo-chip .chip-icon{font-size:15px}
+
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.stat-card{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);text-align:center}
+.stat-card .stat-value{font-size:32px;font-weight:800;color:var(--ocean)}
+.stat-card .stat-label{font-size:13px;color:var(--muted);margin-top:4px}
+.stat-card.wide{grid-column:1/-1}
+.leaderboard{display:flex;gap:12px;margin-bottom:14px}
+.leaderboard .lb-card{flex:1;background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);text-align:center}
+.leaderboard .lb-card .lb-avatar{font-size:36px}
+.leaderboard .lb-card .lb-name{font-size:14px;font-weight:700;margin:6px 0}
+.leaderboard .lb-card .lb-score{font-size:18px;font-weight:800}
+.leaderboard .lb-card .lb-label{font-size:12px;color:var(--muted)}
+.category-breakdown{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+.category-breakdown h3{font-size:15px;margin-bottom:12px}
+.cat-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.cat-row .cat-name{font-size:13px;width:50px;flex-shrink:0}
+.cat-row .cat-bar-wrap{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.cat-row .cat-bar-fill{height:100%;border-radius:4px;transition:width 0.4s ease}
+.cat-row .cat-pct{font-size:12px;color:var(--muted);width:40px;text-align:right}
+
+.timeline-controls{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:16px}
+.timeline-controls button{background:var(--card);border:1.5px solid var(--border);padding:8px 14px;border-radius:20px;font-size:14px;cursor:pointer;transition:var(--transition)}
+.timeline-controls button:hover{border-color:var(--ocean)}
+.timeline-controls .tl-month{font-size:16px;font-weight:700;min-width:100px;text-align:center}
+
+.timeline-day{background:var(--card);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow);border-left:4px solid var(--border)}
+.timeline-day.today{border-left-color:var(--ocean)}
+.timeline-day .tl-date{font-size:14px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.timeline-day .tl-date .weekday{color:var(--muted);font-weight:400}
+.timeline-day .tl-summary{font-size:13px;color:var(--muted);margin-bottom:6px}
+.timeline-day .tl-todos{display:flex;flex-wrap:wrap;gap:6px}
+.timeline-day .tl-todo-tag{font-size:12px;padding:3px 10px;border-radius:12px;white-space:nowrap}
+.tl-todo-tag.done{background:#e8f5e9;color:#2e7d32}
+.tl-todo-tag.pending{background:#fff3e0;color:#e65100}
+
+/* Plans */
+.plans-add-form{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.plans-add-form input{flex:1;min-width:140px;padding:10px 14px;border:2px solid var(--border);border-radius:12px;font-size:14px;outline:none;transition:var(--transition)}
+.plans-add-form input:focus{border-color:var(--ocean)}
+.plans-add-form .btn-add-plan{padding:10px 18px;border:none;border-radius:12px;background:var(--ocean);color:#fff;font-size:14px;font-weight:600;cursor:pointer}
+.plans-summary{display:flex;gap:12px;margin-bottom:14px}
+.plans-summary .ps-item{flex:1;background:var(--card);border-radius:12px;padding:12px;text-align:center;box-shadow:var(--shadow)}
+.plans-summary .ps-val{font-size:22px;font-weight:800;color:var(--ocean)}
+.plans-summary .ps-label{font-size:12px;color:var(--muted);margin-top:2px}
+
+.plan-card{background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:10px;box-shadow:var(--shadow);border-left:4px solid var(--border)}
+.plan-card.done{border-left-color:#5B8C6F;opacity:0.85}
+.plan-card .plan-header{display:flex;align-items:flex-start;gap:10px;margin-bottom:6px}
+.plan-card .plan-status{font-size:20px;flex-shrink:0;margin-top:2px}
+.plan-card .plan-info{flex:1}
+.plan-card .plan-title{font-size:15px;font-weight:700}
+.plan-card .plan-note{font-size:13px;color:var(--muted);margin-top:4px}
+.plan-card .plan-meta{font-size:11px;color:var(--muted);margin-top:4px;display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.plan-card .plan-meta .who{background:var(--card-alt);padding:2px 8px;border-radius:10px}
+.plan-card .plan-photo{margin-top:10px;border-radius:12px;overflow:hidden;max-width:100%}
+.plan-card .plan-photo img{width:100%;max-height:280px;object-fit:cover;display:block;border-radius:12px}
+.plan-card .plan-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.plan-card .plan-actions button{padding:6px 14px;border:1.5px solid var(--border);border-radius:16px;font-size:13px;cursor:pointer;background:var(--card);transition:var(--transition)}
+.plan-card .plan-actions button:hover{border-color:var(--ocean);color:var(--ocean)}
+.plan-card .plan-actions .btn-done{background:var(--ocean);color:#fff;border-color:var(--ocean)}
+
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#2d3436;color:#fff;padding:10px 24px;border-radius:20px;font-size:14px;z-index:999;opacity:0;transition:opacity 0.3s ease;pointer-events:none}
+.toast.show{opacity:1}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:200;display:none;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:var(--card);border-radius:var(--radius);padding:24px;width:90%;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,0.15)}
+.modal h2{font-size:18px;margin-bottom:16px}
+.modal input[type="date"]{width:100%;padding:12px;border:2px solid var(--border);border-radius:12px;font-size:16px;margin-bottom:16px;outline:none}
+.modal .modal-actions{display:flex;gap:10px;justify-content:flex-end}
+.modal .modal-actions button{padding:10px 20px;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer}
+.modal .btn-cancel{background:var(--border);color:var(--text)}
+.modal .btn-confirm{background:var(--ocean);color:#fff}
+
+.photo-modal{background:var(--card);border-radius:var(--radius);padding:24px;width:90%;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,0.15)}
+.photo-modal h2{font-size:18px;margin-bottom:8px}
+.photo-modal p{font-size:13px;color:var(--muted);margin-bottom:14px}
+.photo-modal input[type="file"]{width:100%;padding:10px;font-size:14px;margin-bottom:16px}
+.photo-modal .preview{width:100%;max-height:200px;object-fit:contain;border-radius:10px;margin-bottom:12px;display:none}
+.photo-modal .modal-actions{display:flex;gap:10px;justify-content:flex-end}
+.photo-modal .modal-actions button{padding:10px 20px;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer}
+
+@media(min-width:600px){main{padding:24px}.stats-grid{grid-template-columns:repeat(4,1fr)}}
+
+.data-tools{background:var(--card);border-radius:var(--radius);padding:16px;margin-top:14px;box-shadow:var(--shadow)}
+.data-tools h3{font-size:15px;margin-bottom:6px}
+.data-tools-hint{font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5}
+.data-tools-btns{display:flex;gap:10px}
+.btn-tool-export,.btn-tool-import{padding:10px 18px;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:var(--transition)}
+.btn-tool-export{background:var(--ocean);color:#fff}
+.btn-tool-import{background:var(--forest);color:#fff}
+.btn-tool-export:hover,.btn-tool-import:hover{opacity:0.85}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <span class="header-icon">⛰️</span>
+    <div class="header-title">
+      <h1>小毛小陈 · 打卡</h1>
+      <p class="header-sub">共同成长 · 高效生活</p>
+    </div>
+  </div>
+  <div class="header-date-row">
+    <button id="btn-prev" title="前一天">◀</button>
+    <span class="date-text" id="date-text">今天</span>
+    <button id="btn-next" title="后一天">▶</button>
+    <button id="btn-today">回今天</button>
+  </div>
+</header>
+
+<nav class="tab-bar">
+  <button class="active" data-view="today">📋 今日</button>
+  <button data-view="timeline">📅 时间轴</button>
+  <button data-view="stats">📊 统计</button>
+  <button data-view="plans">🗺️ 计划</button>
+</nav>
+
+<main>
+  <section class="view active" id="view-today"><div id="today-content"></div></section>
+  <section class="view" id="view-timeline">
+    <div class="timeline-controls">
+      <button id="tl-prev-month">◀</button>
+      <span class="tl-month" id="tl-month"></span>
+      <button id="tl-next-month">▶</button>
+    </div>
+    <div id="timeline-content"></div>
+  </section>
+  <section class="view" id="view-stats"><div id="stats-content"></div></section>
+  <section class="view" id="view-plans"><div id="plans-content"></div></section>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h2>选择日期</h2>
+    <input type="date" id="modal-date-input">
+    <div class="modal-actions">
+      <button class="btn-cancel" id="modal-cancel">取消</button>
+      <button class="btn-confirm" id="modal-confirm">确定</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="photo-modal-overlay">
+  <div class="photo-modal">
+    <h2>📸 上传完成照片</h2>
+    <p id="photo-modal-title"></p>
+    <input type="file" id="photo-input" accept="image/*">
+    <img class="preview" id="photo-preview" alt="预览">
+    <div class="modal-actions">
+      <button class="btn-cancel" id="photo-modal-cancel">跳过</button>
+      <button class="btn-confirm" id="photo-modal-confirm">上传完成 ✓</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  Data layer — localStorage as the database
+// ═══════════════════════════════════════════════════════════
+const DB = {
+  get(key, fallback) {
+    try { return JSON.parse(localStorage.getItem('ct_' + key)) || fallback; }
+    catch { return fallback; }
+  },
+  set(key, val) {
+    localStorage.setItem('ct_' + key, JSON.stringify(val));
+  },
+  users()     { return DB.get('users', [
+    { id: 1, name: '小毛', avatar: '⛰️', color: '#6B705C' },
+    { id: 2, name: '小陈', avatar: '🌊', color: '#3D7EAA' }
+  ])},
+  defaultTodos() { return DB.get('defaultTodos', defaultTodoSeed) },
+  todos()     { return DB.get('todos', []) },
+  plans()     { return DB.get('plans', []) },
+};
+
+function defaultTodoSeed() {
+  return [
+    { id:'d1', title:'喝水 8 杯', category:'健康', icon:'💧' },
+    { id:'d2', title:'运动 30 分钟', category:'健康', icon:'🏃' },
+    { id:'d3', title:'吃水果', category:'健康', icon:'🍎' },
+    { id:'d4', title:'早睡（23:00 前）', category:'健康', icon:'😴' },
+    { id:'d5', title:'早起（7:30 前）', category:'健康', icon:'🌅' },
+    { id:'d6', title:'不吃零食', category:'健康', icon:'🚫' },
+    { id:'d7', title:'冥想 10 分钟', category:'健康', icon:'🧘' },
+    { id:'d8', title:'阅读 30 分钟', category:'学习', icon:'📖' },
+    { id:'d9', title:'学习新技能', category:'学习', icon:'💡' },
+    { id:'d10', title:'完成今日工作重点', category:'工作', icon:'🎯' },
+    { id:'d11', title:'整理桌面', category:'工作', icon:'🗂️' },
+    { id:'d12', title:'和对方说「我爱你」', category:'情感', icon:'❤️' },
+    { id:'d13', title:'给对方一个拥抱', category:'情感', icon:'🤗' },
+    { id:'d14', title:'一起看一部电影', category:'情感', icon:'🎬' },
+    { id:'d15', title:'为对方做一件小事', category:'情感', icon:'🎁' },
+    { id:'d16', title:'认真聊天 15 分钟', category:'情感', icon:'💬' },
+    { id:'d17', title:'记账', category:'生活', icon:'💰' },
+    { id:'d18', title:'打扫房间', category:'生活', icon:'🧹' },
+    { id:'d19', title:'做饭', category:'生活', icon:'🍳' },
+    { id:'d20', title:'护肤', category:'生活', icon:'✨' },
+    { id:'d21', title:'学英语', category:'学习', icon:'📝' },
+    { id:'d22', title:'爬楼梯', category:'健康', icon:'🪜' },
+    { id:'d23', title:'3D打印', category:'工作', icon:'🖨️' },
+    { id:'d24', title:'Vibo coding', category:'工作', icon:'💻' },
+    { id:'d25', title:'洗衣服', category:'生活', icon:'🧺' },
+  ];
+}
+
+// Persist on first load
+DB.set('users', DB.users());
+DB.set('defaultTodos', DB.defaultTodos());
+
+// ═══════════════════════════════════════════════════════════
+//  State
+// ═══════════════════════════════════════════════════════════
+const state = {
+  currentDate: today(),
+  timelineYear: new Date().getFullYear(),
+  timelineMonth: new Date().getMonth() + 1,
+  pendingPlanId: null,
+};
+
+// ═══════════════════════════════════════════════════════════
+//  Helpers
+// ═══════════════════════════════════════════════════════════
+function today() { return new Date().toISOString().slice(0,10); }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 1800);
+}
+function formatDate(d) {
+  const t = today();
+  if (d === t) return '今天';
+  const y = new Date(); y.setDate(y.getDate()-1); if(d===y.toISOString().slice(0,10)) return '昨天';
+  const tm = new Date(); tm.setDate(tm.getDate()+1); if(d===tm.toISOString().slice(0,10)) return '明天';
+  return d;
+}
+function weekDay(d) { return ['周日','周一','周二','周三','周四','周五','周六'][new Date(d).getDay()]; }
+function timeAgo(iso) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff/60000);
+  if(m<1) return '刚刚'; if(m<60) return m+'分钟前';
+  const h = Math.floor(m/60); if(h<24) return h+'小时前';
+  return Math.floor(h/24)+'天前';
+}
+
+// ═══════════════════════════════════════════════════════════
+//  Today View
+// ═══════════════════════════════════════════════════════════
+function renderToday() {
+  const users = DB.users();
+  const allTodos = DB.todos().filter(t => t.date === state.currentDate);
+  const defaults = DB.defaultTodos();
+  const dateStr = formatDate(state.currentDate);
+
+  let html = '';
+  users.forEach(user => {
+    const ut = allTodos.filter(t => t.userId === user.id);
+    const done = ut.filter(t => t.completed).length;
+    const tot = ut.length;
+    const pct = tot > 0 ? Math.round(done/tot*100) : 0;
+    html += `<div class="user-panel">
+      <div class="user-header">
+        <div class="avatar" style="background:${user.color}">${user.avatar}</div>
+        <span class="user-name">${user.name}</span>
+        <span class="progress">${done}/${tot} · ${pct}%</span>
+      </div>
+      <div class="progress-bar"><div class="fill" style="width:${pct}%;background:${user.color}"></div></div>
+      <ul class="todo-list" data-user="${user.id}">`;
+    ut.forEach(t => {
+      html += `<li class="todo-item ${t.completed?'completed':''}" data-id="${t.id}">
+        <span class="todo-icon">${t.completed?'✅':t.icon}</span>
+        <span class="todo-title">${esc(t.title)}</span>
+        <span class="todo-category">${esc(t.category)}</span>
+        <button class="todo-delete" data-action="delete" data-id="${t.id}">×</button>
+      </li>`;
+    });
+    html += `</ul>
+      <form class="add-todo-form" data-user="${user.id}">
+        <input type="text" placeholder="添加${user.name}的待办..." required maxlength="50">
+        <button type="submit" class="btn-add" style="background:${user.color}">＋</button>
+      </form>
+    </div>`;
+  });
+
+  html += `<div class="default-todos-panel"><h3>📌 常用待办 · 点击添加</h3><div class="default-todos-grid">`;
+  defaults.forEach(dt => {
+    const added = allTodos.some(t => t.title === dt.title && t.category === dt.category);
+    html += `<span class="default-todo-chip ${added?'added':''}" data-title="${esc(dt.title)}" data-cat="${esc(dt.category)}" data-icon="${dt.icon}">
+      <span class="chip-icon">${dt.icon}</span>${esc(dt.title)}</span>`;
+  });
+  html += `</div></div>`;
+
+  document.getElementById('date-text').textContent = dateStr;
+  document.getElementById('today-content').innerHTML = html;
+  bindTodayEvents();
+}
+
+function bindTodayEvents() {
+  document.querySelectorAll('.todo-item').forEach(item => {
+    item.addEventListener('click', e => {
+      if (e.target.closest('[data-action="delete"]')) return;
+      const id = item.dataset.id;
+      const todos = DB.todos();
+      const t = todos.find(x => x.id === id);
+      if (t) { t.completed = !t.completed; t.completedAt = t.completed ? new Date().toISOString() : null; }
+      DB.set('todos', todos);
+      renderToday();
+    });
+  });
+  document.querySelectorAll('[data-action="delete"]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const todos = DB.todos().filter(x => x.id !== btn.dataset.id);
+      DB.set('todos', todos);
+      renderToday(); showToast('已删除');
+    });
+  });
+  document.querySelectorAll('.add-todo-form').forEach(form => {
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const userId = parseInt(form.dataset.user);
+      const input = form.querySelector('input');
+      const title = input.value.trim();
+      if (!title) return;
+      const todos = DB.todos();
+      todos.push({ id:uid(), userId, date:state.currentDate, title, category:'自定义', icon:'📌', completed:false, completedAt:null, createdAt:new Date().toISOString() });
+      DB.set('todos', todos);
+      input.value = ''; renderToday(); showToast('已添加 ✓');
+    });
+  });
+  document.querySelectorAll('.default-todo-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const title = chip.dataset.title, icon = chip.dataset.icon, cat = chip.dataset.cat;
+      let todos = DB.todos();
+      if (chip.classList.contains('added')) {
+        todos = todos.filter(t => !(t.title === title && t.category === cat && t.date === state.currentDate));
+        DB.set('todos', todos); renderToday(); showToast('已移除');
+        return;
+      }
+      DB.users().forEach(u => {
+        todos.push({ id:uid(), userId:u.id, date:state.currentDate, title, category:cat, icon, completed:false, completedAt:null, createdAt:new Date().toISOString() });
+      });
+      DB.set('todos', todos); renderToday(); showToast(`已为两人添加 ✓`);
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  Timeline View
+// ═══════════════════════════════════════════════════════════
+function renderTimeline() {
+  const y = state.timelineYear, m = state.timelineMonth;
+  document.getElementById('tl-month').textContent = `${y}年 ${m}月`;
+  const lastDay = new Date(y, m, 0).getDate();
+  const from = `${y}-${String(m).padStart(2,'0')}-01`;
+  const to = `${y}-${String(m).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`;
+  const rangeTodos = DB.todos().filter(t => t.date >= from && t.date <= to);
+  const users = DB.users();
+
+  const days = [];
+  for (let d = 1; d <= lastDay; d++) {
+    const ds = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    days.push({ date: ds, todos: rangeTodos.filter(t => t.date === ds) });
+  }
+  days.reverse();
+
+  let html = '';
+  days.forEach(day => {
+    const isToday = day.date === today();
+    const done = day.todos.filter(t => t.completed).length;
+    const tot = day.todos.length;
+    const u1 = day.todos.filter(t => t.userId===1), u2 = day.todos.filter(t => t.userId===2);
+    html += `<div class="timeline-day ${isToday?'today':''}" data-date="${day.date}">
+      <div class="tl-date">${formatDate(day.date)} <span class="weekday">${weekDay(day.date)}</span></div>
+      <div class="tl-summary">${tot>0?`共 ${tot} 项 · 完成 ${done} 项 · ${users[0]?.avatar} ${u1.filter(t=>t.completed).length}/${u1.length} · ${users[1]?.avatar} ${u2.filter(t=>t.completed).length}/${u2.length}`:'📭 暂无记录'}</div>
+      ${tot>0?`<div class="tl-todos">${day.todos.map(t=>`<span class="tl-todo-tag ${t.completed?'done':'pending'}">${t.icon} ${esc(t.title)}</span>`).join('')}</div>`:''}
+    </div>`;
+  });
+  document.getElementById('timeline-content').innerHTML = html || '<p style="text-align:center;color:var(--muted);padding:20px;">暂无数据</p>';
+  document.querySelectorAll('.timeline-day').forEach(el => {
+    el.addEventListener('click', () => { state.currentDate = el.dataset.date; switchTab('today'); renderToday(); });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  Stats View
+// ═══════════════════════════════════════════════════════════
+function renderStats() {
+  const ts = today().slice(0,7) + '-01';
+  const te = today();
+  let todos = DB.todos().filter(t => t.date >= ts && t.date <= te);
+  const users = DB.users();
+  const total = todos.length;
+  const completed = todos.filter(t => t.completed).length;
+  const rate = total > 0 ? Math.round(completed/total*100) : 0;
+
+  const byCategory = {};
+  todos.forEach(t => {
+    const cat = t.category || '其他';
+    if (!byCategory[cat]) byCategory[cat] = { total:0, completed:0 };
+    byCategory[cat].total++; if (t.completed) byCategory[cat].completed++;
+  });
+
+  const dates = [...new Set(todos.map(t => t.date))].sort().reverse();
+  let streak = 0;
+  for (const d of dates) {
+    const dayTodos = todos.filter(t => t.date === d);
+    if (dayTodos.some(t => t.completed)) streak++; else break;
+  }
+
+  const leaderboard = users.map(u => {
+    const ut = todos.filter(t => t.userId === u.id);
+    return { ...u, total: ut.length, completed: ut.filter(t => t.completed).length };
+  });
+
+  const colors = { '健康':'#5B8C6F','学习':'#3D7EAA','工作':'#D4A76A','情感':'#C0846B','生活':'#8B7D6B','自定义':'#B0A89A' };
+
+  document.getElementById('stats-content').innerHTML = `
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-value">${total}</div><div class="stat-label">本月待办总数</div></div>
+    <div class="stat-card"><div class="stat-value">${completed}</div><div class="stat-label">本月已完成</div></div>
+    <div class="stat-card"><div class="stat-value">${rate}%</div><div class="stat-label">完成率</div></div>
+    <div class="stat-card"><div class="stat-value">🔥 ${streak}</div><div class="stat-label">连续打卡天数</div></div>
+  </div>
+  <div class="leaderboard">${leaderboard.map(lb=>`<div class="lb-card"><div class="lb-avatar">${lb.avatar}</div><div class="lb-name">${lb.name}</div><div class="lb-score" style="color:${lb.color}">${lb.completed}/${lb.total}</div><div class="lb-label">已完成/总计</div></div>`).join('')}</div>
+  <div class="category-breakdown"><h3>📂 本月分类统计</h3>
+    ${Object.entries(byCategory).map(([cat,d])=>{const p=d.total>0?Math.round(d.completed/d.total*100):0; return `<div class="cat-row"><span class="cat-name">${cat}</span><div class="cat-bar-wrap"><div class="cat-bar-fill" style="width:${p}%;background:${colors[cat]||'#b2bec3'}"></div></div><span class="cat-pct">${p}%</span></div>`}).join('')}
+  </div>
+  <div class="data-tools">
+    <h3>💾 数据备份</h3>
+    <p class="data-tools-hint">导出 JSON 文件可提交到 GitHub 备份；另一台手机下载后导入即可同步</p>
+    <div class="data-tools-btns">
+      <button id="btn-export" class="btn-tool-export">📤 导出数据</button>
+      <button id="btn-import" class="btn-tool-import">📥 导入数据</button>
+    </div>
+    <input type="file" id="import-file-input" accept=".json" style="display:none">
+  </div>`;
+  bindExportImport();
+}
+
+function bindExportImport() {
+  const exportBtn = document.getElementById('btn-export');
+  const importBtn = document.getElementById('btn-import');
+  const fileInput = document.getElementById('import-file-input');
+  if (!exportBtn || !importBtn) return;
+
+  exportBtn.addEventListener('click', () => {
+    const data = {
+      users: DB.users(),
+      defaultTodos: DB.defaultTodos(),
+      todos: DB.todos(),
+      plans: DB.plans(),
+      exportedAt: new Date().toISOString(),
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `backup-${today()}.json`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('数据已导出 ✓');
+  });
+
+  importBtn.addEventListener('click', () => fileInput.click());
+
+  fileInput.addEventListener('change', () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (!data.todos && !data.plans) throw new Error('无效的备份文件');
+        if (!confirm(
+          `确认导入？\n\n` +
+          `待办: ${(data.todos||[]).length} 条\n` +
+          `计划: ${(data.plans||[]).length} 条\n` +
+          `导出时间: ${data.exportedAt||'未知'}\n\n` +
+          `⚠ 当前数据将被覆盖！`
+        )) return;
+        if (data.users) DB.set('users', data.users);
+        if (data.defaultTodos) DB.set('defaultTodos', data.defaultTodos);
+        if (data.todos) DB.set('todos', data.todos);
+        if (data.plans) DB.set('plans', data.plans);
+        showToast('数据已导入 ✓');
+        renderStats();
+        renderToday();
+      } catch (err) {
+        showToast('导入失败: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+    fileInput.value = '';
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+//  Plans View
+// ═══════════════════════════════════════════════════════════
+function renderPlans() {
+  const plans = DB.plans();
+  const users = DB.users();
+  const total = plans.length, done = plans.filter(p=>p.done).length;
+
+  const sorted = [...plans].sort((a,b) => {
+    if (a.done !== b.done) return a.done ? 1 : -1;
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  });
+
+  let html = `
+  <form class="plans-add-form" id="plan-form">
+    <input type="text" id="plan-title-input" placeholder="输入想一起做的事..." required maxlength="50">
+    <input type="text" id="plan-note-input" placeholder="备注（选填）" maxlength="80" style="flex:0.6;min-width:100px;">
+    <button type="submit" class="btn-add-plan">＋ 添加</button>
+  </form>
+  <div class="plans-summary">
+    <div class="ps-item"><div class="ps-val">${total}</div><div class="ps-label">全部计划</div></div>
+    <div class="ps-item"><div class="ps-val">✅ ${done}</div><div class="ps-label">已完成</div></div>
+    <div class="ps-item"><div class="ps-val">📋 ${total-done}</div><div class="ps-label">待完成</div></div>
+  </div>
+  <div id="plan-list">`;
+
+  sorted.forEach(p => {
+    const creator = users.find(u => u.id === p.createdBy);
+    const who = creator ? `<span class="who" style="color:${creator.color}">${creator.avatar} ${creator.name}</span>` : '';
+    html += `
+    <div class="plan-card ${p.done?'done':''}" data-plan-id="${p.id}">
+      <div class="plan-header">
+        <span class="plan-status">${p.done?'✅':'📋'}</span>
+        <div class="plan-info">
+          <div class="plan-title">${esc(p.title)}</div>
+          ${p.note?`<div class="plan-note">${esc(p.note)}</div>`:''}
+          <div class="plan-meta">${who} ${p.done?`<span>完成于 ${new Date(p.doneAt).toLocaleDateString('zh-CN')}</span>`:`<span>${timeAgo(p.createdAt)} 添加</span>`}</div>
+        </div>
+      </div>
+      ${p.done && p.photo ? `<div class="plan-photo"><img src="${p.photo}" alt="${esc(p.title)}" loading="lazy"></div>` : ''}
+      <div class="plan-actions">
+        ${p.done ? `<button class="btn-reopen" data-plan-id="${p.id}">🔄 重新打开</button>`
+                 : `<button class="btn-done" data-plan-id="${p.id}">✅ 标记完成</button>`}
+        <button class="btn-del-plan" data-plan-id="${p.id}">🗑 删除</button>
+      </div>
+    </div>`;
+  });
+
+  html += `</div>${total===0?'<p style="text-align:center;color:var(--muted);padding:20px;">🎯 还没有计划，快添加第一个吧！</p>':''}`;
+  document.getElementById('plans-content').innerHTML = html;
+  bindPlansEvents();
+}
+
+function bindPlansEvents() {
+  const form = document.getElementById('plan-form');
+  if (form) form.addEventListener('submit', e => {
+    e.preventDefault();
+    const title = document.getElementById('plan-title-input').value.trim();
+    const note = document.getElementById('plan-note-input').value.trim();
+    if (!title) return;
+    const plans = DB.plans();
+    plans.push({ id:'p'+uid(), title, note, createdBy:null, done:false, doneAt:null, photo:null, createdAt:new Date().toISOString() });
+    DB.set('plans', plans);
+    document.getElementById('plan-title-input').value = '';
+    document.getElementById('plan-note-input').value = '';
+    renderPlans(); showToast('计划已添加 ✓');
+  });
+
+  document.querySelectorAll('.btn-done').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      state.pendingPlanId = btn.dataset.planId;
+      const plan = DB.plans().find(p => p.id === state.pendingPlanId);
+      document.getElementById('photo-modal-title').textContent = '「' + plan.title + '」';
+      document.getElementById('photo-input').value = '';
+      document.getElementById('photo-preview').style.display = 'none';
+      document.getElementById('photo-modal-overlay').classList.add('show');
+    });
+  });
+
+  document.querySelectorAll('.btn-reopen').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const plans = DB.plans();
+      const p = plans.find(x => x.id === btn.dataset.planId);
+      if (p) { p.done = false; p.doneAt = null; p.photo = null; }
+      DB.set('plans', plans); renderPlans(); showToast('已重新打开');
+    });
+  });
+
+  document.querySelectorAll('.btn-del-plan').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      if (!confirm('确定删除？')) return;
+      const plans = DB.plans().filter(x => x.id !== btn.dataset.planId);
+      DB.set('plans', plans); renderPlans(); showToast('已删除');
+    });
+  });
+}
+
+// Photo upload modal — convert to base64 and store directly
+document.getElementById('photo-input').addEventListener('change', function() {
+  const file = this.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const preview = document.getElementById('photo-preview');
+    preview.src = e.target.result;
+    preview.style.display = 'block';
+    // Compress large images to avoid localStorage overflow (>5MB)
+    if (file.size > 2 * 1024 * 1024) {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const scale = Math.min(1, Math.sqrt(2*1024*1024 / file.size));
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        preview.src = canvas.toDataURL('image/jpeg', 0.85);
+      };
+      img.src = e.target.result;
+    }
+  };
+  reader.readAsDataURL(file);
+});
+
+document.getElementById('photo-modal-confirm').addEventListener('click', () => {
+  const planId = state.pendingPlanId;
+  if (!planId) return;
+  const preview = document.getElementById('photo-preview');
+  const photoData = preview.style.display !== 'none' ? preview.src : null;
+  const plans = DB.plans();
+  const p = plans.find(x => x.id === planId);
+  if (p) { p.done = true; p.doneAt = new Date().toISOString(); if (photoData) p.photo = photoData; }
+  DB.set('plans', plans);
+  document.getElementById('photo-modal-overlay').classList.remove('show');
+  state.pendingPlanId = null;
+  renderPlans();
+  showToast(photoData ? '已完成并上传照片 ✓' : '已完成 ✓');
+});
+
+document.getElementById('photo-modal-cancel').addEventListener('click', () => {
+  const planId = state.pendingPlanId;
+  document.getElementById('photo-modal-overlay').classList.remove('show');
+  state.pendingPlanId = null;
+  if (!planId) return;
+  const plans = DB.plans();
+  const p = plans.find(x => x.id === planId);
+  if (p) { p.done = true; p.doneAt = new Date().toISOString(); }
+  DB.set('plans', plans);
+  renderPlans(); showToast('已完成（无照片）✓');
+});
+
+document.getElementById('photo-modal-overlay').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('show');
+});
+
+// ═══════════════════════════════════════════════════════════
+//  Navigation
+// ═══════════════════════════════════════════════════════════
+function switchTab(view) {
+  document.querySelectorAll('.tab-bar button').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+  document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + view));
+  if (view === 'today') renderToday();
+  if (view === 'timeline') renderTimeline();
+  if (view === 'stats') renderStats();
+  if (view === 'plans') renderPlans();
+}
+
+document.getElementById('btn-prev').addEventListener('click', () => {
+  const d = new Date(state.currentDate); d.setDate(d.getDate()-1);
+  state.currentDate = d.toISOString().slice(0,10); renderToday();
+});
+document.getElementById('btn-next').addEventListener('click', () => {
+  const d = new Date(state.currentDate); d.setDate(d.getDate()+1);
+  state.currentDate = d.toISOString().slice(0,10); renderToday();
+});
+document.getElementById('btn-today').addEventListener('click', () => { state.currentDate = today(); renderToday(); });
+document.querySelectorAll('.tab-bar button').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.view)));
+document.getElementById('tl-prev-month').addEventListener('click', () => {
+  if (state.timelineMonth === 1) { state.timelineYear--; state.timelineMonth = 12; }
+  else state.timelineMonth--;
+  renderTimeline();
+});
+document.getElementById('tl-next-month').addEventListener('click', () => {
+  if (state.timelineMonth === 12) { state.timelineYear++; state.timelineMonth = 1; }
+  else state.timelineMonth++;
+  renderTimeline();
+});
+
+// Init
+renderToday();
+</script>
+</body>
+</html>
