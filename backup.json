@@ -299,6 +299,17 @@
       "createdAt": "2026-06-14T09:37:40.433Z"
     }
   ],
-  "plans": [],
-  "exportedAt": "2026-06-14T10:22:42.096Z"
+  "plans": [
+    {
+      "id": "pmqdn0q5eyzu4",
+      "title": "汉拿山",
+      "note": "",
+      "createdBy": null,
+      "done": true,
+      "doneAt": "2026-06-14T10:24:42.061Z",
+      "photo": "photo_pmqdn0q5eyzu4.jpg",
+      "createdAt": "2026-06-14T10:24:36.194Z"
+    }
+  ],
+  "exportedAt": "2026-06-14T10:24:48.637Z"
 }
