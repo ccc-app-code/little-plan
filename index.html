@@ -155,8 +155,6 @@ main{padding:16px;padding-bottom:100px;max-width:600px;margin:0 auto}
 .btn-tool-export,.btn-tool-import{padding:10px 18px;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:var(--transition)}
 .btn-tool-export{background:var(--ocean);color:#fff}
 .btn-tool-import{background:var(--forest);color:#fff}
-.btn-tool-outline{padding:10px 18px;border:1.5px solid var(--border);border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;transition:var(--transition);background:var(--card);color:var(--text)}
-.btn-tool-outline:hover{border-color:var(--ocean)}
 .btn-tool-export:hover,.btn-tool-import:hover{opacity:0.85}
 .gh-status{font-size:12px;margin-top:8px;min-height:18px;color:var(--muted)}
 .auto-sync-toggle{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;padding:10px 16px;border:1.5px solid var(--border);border-radius:12px;background:var(--card);transition:var(--transition)}
@@ -507,24 +505,17 @@ function renderStats() {
   </div>
   <div class="data-tools">
     <h3>☁️ GitHub 自动同步</h3>
-    <p class="data-tools-hint">配置后点「同步到 GitHub」，数据自动上传到仓库 backup.json；另一台手机点「加载」即可同步。Token 仅存本机 localStorage。</p>
+    <p class="data-tools-hint">配置 Token 并开启自动同步后，每次打卡自动上传。另一台手机同样配置即可同步。</p>
     <div class="gh-config">
-      <input type="text" id="gh-owner" placeholder="GitHub 用户名" maxlength="40">
-      <input type="text" id="gh-repo" placeholder="仓库名" maxlength="40">
-      <input type="password" id="gh-token" placeholder="Token (ghp_...)" maxlength="100">
+      <input type="text" id="gh-owner" placeholder="GitHub 用户名" maxlength="40" value="ccc-app-code">
+      <input type="text" id="gh-repo" placeholder="仓库名" maxlength="40" value="little-plan">
+      <input type="password" id="gh-token" placeholder="粘贴 Token (ghp_...)" maxlength="100">
       <button id="btn-gh-save" class="btn-tool-export">保存配置</button>
     </div>
     <div class="data-tools-btns">
       <button id="btn-gh-push" class="btn-tool-export">☁️ 同步到 GitHub</button>
       <button id="btn-gh-pull" class="btn-tool-import">☁️ 从 GitHub 加载</button>
-    </div>
-    <div class="data-tools-btns" style="margin-top:8px;">
-      <button id="btn-export" class="btn-tool-outline">📤 导出文件</button>
-      <button id="btn-import" class="btn-tool-outline">📥 导入文件</button>
-    </div>
-    <input type="file" id="import-file-input" accept=".json" style="display:none">
-    <div class="data-tools-btns" style="margin-top:8px;">
-      <label class="auto-sync-toggle"><input type="checkbox" id="cb-auto-sync"> 🔄 自动同步到 GitHub</label>
+      <label class="auto-sync-toggle"><input type="checkbox" id="cb-auto-sync"> 🔄 自动同步</label>
     </div>
     <p id="gh-status" class="gh-status"></p>
   </div>`;
@@ -546,14 +537,11 @@ function bindExportImport() {
   const ghRepo = document.getElementById('gh-repo');
   const ghToken = document.getElementById('gh-token');
   const ghStatus = document.getElementById('gh-status');
-  const exportBtn = document.getElementById('btn-export');
-  const importBtn = document.getElementById('btn-import');
-  const fileInput = document.getElementById('import-file-input');
 
-  // Load saved config
+  // Load saved config (prefer persisted over defaults)
   const saved = JSON.parse(localStorage.getItem('ct_gh_config') || '{}');
-  if (ghOwner) ghOwner.value = saved.owner || '';
-  if (ghRepo) ghRepo.value = saved.repo || '';
+  if (ghOwner && !ghOwner.value) ghOwner.value = saved.owner || '';
+  if (ghRepo && !ghRepo.value) ghRepo.value = saved.repo || '';
   if (ghToken) ghToken.value = saved.token || '';
 
   function status(msg, ok) {
@@ -661,40 +649,6 @@ function bindExportImport() {
     } catch (err) {
       status('加载失败: ' + err.message, false);
     }
-  });
-
-  // File export
-  exportBtn?.addEventListener('click', () => {
-    const data = buildBackupData();
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `backup-${today()}.json`;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    showToast('文件已导出 ✓');
-  });
-
-  // File import
-  importBtn?.addEventListener('click', () => fileInput.click());
-  fileInput?.addEventListener('change', () => {
-    const file = fileInput.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const data = JSON.parse(e.target.result);
-        if (!confirm(
-          `确认导入？\n\n待办: ${(data.todos||[]).length} 条 · 计划: ${(data.plans||[]).length} 条\n时间: ${data.exportedAt||'未知'}\n\n⚠ 当前数据将被覆盖！`
-        )) return;
-        restoreData(data);
-        showToast('数据已导入 ✓');
-        renderStats(); renderToday();
-      } catch (err) { showToast('导入失败: ' + err.message); }
-    };
-    reader.readAsText(file);
-    fileInput.value = '';
   });
 
   // Auto-sync toggle
