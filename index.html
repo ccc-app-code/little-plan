@@ -244,7 +244,7 @@ const DB = {
     { id: 1, name: '小毛', avatar: '⛰️', color: '#6B705C' },
     { id: 2, name: '小陈', avatar: '🌊', color: '#3D7EAA' }
   ])},
-  defaultTodos() { return DB.get('defaultTodos', defaultTodoSeed) },
+  defaultTodos() { return DB.get('defaultTodos', defaultTodoSeed()) },
   todos()     { return DB.get('todos', []) },
   plans()     { return DB.get('plans', []) },
 };
@@ -505,10 +505,8 @@ function renderStats() {
   </div>
   <div class="data-tools">
     <h3>☁️ GitHub 自动同步</h3>
-    <p class="data-tools-hint">配置 Token 并开启自动同步后，每次打卡自动上传。另一台手机同样配置即可同步。</p>
+    <p class="data-tools-hint">粘贴 Token 并开启自动同步，每次打卡自动上传。</p>
     <div class="gh-config">
-      <input type="text" id="gh-owner" placeholder="GitHub 用户名" maxlength="40" value="ccc-app-code">
-      <input type="text" id="gh-repo" placeholder="仓库名" maxlength="40" value="little-plan">
       <input type="password" id="gh-token" placeholder="粘贴 Token (ghp_...)" maxlength="100">
       <button id="btn-gh-save" class="btn-tool-export">保存配置</button>
     </div>
@@ -533,15 +531,13 @@ window.autoSync = function() {
 };
 
 function bindExportImport() {
-  const ghOwner = document.getElementById('gh-owner');
-  const ghRepo = document.getElementById('gh-repo');
   const ghToken = document.getElementById('gh-token');
   const ghStatus = document.getElementById('gh-status');
+  const GH_OWNER = 'ccc-app-code';
+  const GH_REPO = 'little-plan';
 
-  // Load saved config (prefer persisted over defaults)
+  // Load saved config
   const saved = JSON.parse(localStorage.getItem('ct_gh_config') || '{}');
-  if (ghOwner && !ghOwner.value) ghOwner.value = saved.owner || '';
-  if (ghRepo && !ghRepo.value) ghRepo.value = saved.repo || '';
   if (ghToken) ghToken.value = saved.token || '';
 
   function status(msg, ok) {
@@ -550,11 +546,9 @@ function bindExportImport() {
   }
 
   function getConfig() {
-    const owner = (ghOwner?.value || '').trim();
-    const repo = (ghRepo?.value || '').trim();
     const token = (ghToken?.value || '').trim();
-    if (!owner || !repo || !token) { status('请先填写 GitHub 配置', false); return null; }
-    return { owner, repo, token };
+    if (!token) { status('请先粘贴 Token', false); return null; }
+    return { owner: GH_OWNER, repo: GH_REPO, token };
   }
 
   function buildBackupData() {
@@ -577,10 +571,10 @@ function bindExportImport() {
 
   // Save config
   document.getElementById('btn-gh-save')?.addEventListener('click', () => {
-    const cfg = { owner: ghOwner.value.trim(), repo: ghRepo.value.trim(), token: ghToken.value.trim() };
-    if (!cfg.owner || !cfg.repo || !cfg.token) { status('请完整填写三项', false); return; }
-    localStorage.setItem('ct_gh_config', JSON.stringify(cfg));
-    status('配置已保存 ✓', true);
+    const token = ghToken.value.trim();
+    if (!token) { status('请先粘贴 Token', false); return; }
+    localStorage.setItem('ct_gh_config', JSON.stringify({ token }));
+    status('Token 已保存 ✓', true);
   });
 
   // Push to GitHub
@@ -596,7 +590,7 @@ function bindExportImport() {
       let sha = null;
       try {
         const getRes = await fetch(
-          `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/backup.json`,
+          `https://api.github.com/repos/ccc-app-code/little-plan/contents/backup.json`,
           { headers: { Authorization: `Bearer ${cfg.token}`, Accept: 'application/vnd.github+json' } }
         );
         if (getRes.ok) { const f = await getRes.json(); sha = f.sha; }
@@ -606,7 +600,7 @@ function bindExportImport() {
       if (sha) body.sha = sha;
 
       const res = await fetch(
-        `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/backup.json`,
+        `https://api.github.com/repos/ccc-app-code/little-plan/contents/backup.json`,
         {
           method: 'PUT',
           headers: { Authorization: `Bearer ${cfg.token}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' },
@@ -629,7 +623,7 @@ function bindExportImport() {
     ghStatus.textContent = '正在加载...';
     try {
       const res = await fetch(
-        `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/backup.json`,
+        `https://api.github.com/repos/ccc-app-code/little-plan/contents/backup.json`,
         { headers: { Authorization: `Bearer ${cfg.token}`, Accept: 'application/vnd.github+json' } }
       );
       if (!res.ok) throw new Error('未找到 backup.json，请先同步上传一次');
@@ -666,7 +660,7 @@ function bindExportImport() {
 
 async function doSync() {
   const saved = JSON.parse(localStorage.getItem('ct_gh_config') || '{}');
-  if (!saved.owner || !saved.repo || !saved.token) return;
+  if (!saved.token) return;
   try {
     const data = {
       users: DB.users(), defaultTodos: DB.defaultTodos(),
@@ -675,18 +669,17 @@ async function doSync() {
     };
     const jsonStr = JSON.stringify(data, null, 2);
     const base64 = btoa(unescape(encodeURIComponent(jsonStr)));
+    const apiUrl = `https://api.github.com/repos/ccc-app-code/little-plan/contents/backup.json`;
     let sha = null;
     try {
-      const getRes = await fetch(
-        `https://api.github.com/repos/${saved.owner}/${saved.repo}/contents/backup.json`,
+      const getRes = await fetch(apiUrl,
         { headers: { Authorization: `Bearer ${saved.token}`, Accept: 'application/vnd.github+json' } }
       );
       if (getRes.ok) { const f = await getRes.json(); sha = f.sha; }
     } catch {}
     const body = { message: `auto-sync ${today()}`, content: base64 };
     if (sha) body.sha = sha;
-    await fetch(
-      `https://api.github.com/repos/${saved.owner}/${saved.repo}/contents/backup.json`,
+    await fetch(apiUrl,
       { method: 'PUT', headers: { Authorization: `Bearer ${saved.token}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
     );
     const el = document.getElementById('gh-status');
