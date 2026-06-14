@@ -304,6 +304,8 @@ function showToast(msg) {
   el.textContent = msg; el.classList.add('show');
   clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 1800);
 }
+function toBase64(str) { return btoa(String.fromCharCode(...new TextEncoder().encode(str))); }
+function fromBase64(b64) { return new TextDecoder().decode(Uint8Array.from(atob(b64.replace(/\s/g,'')), c => c.charCodeAt(0))); }
 function formatDate(d) {
   const t = today();
   if (d === t) return '今天';
@@ -584,7 +586,7 @@ function bindExportImport() {
     try {
       const data = buildBackupData();
       const jsonStr = JSON.stringify(data, null, 2);
-      const base64 = btoa(unescape(encodeURIComponent(jsonStr)));
+      const base64 = toBase64(jsonStr);
 
       // Get current file sha (if exists)
       let sha = null;
@@ -628,7 +630,7 @@ function bindExportImport() {
       );
       if (!res.ok) throw new Error('未找到 backup.json，请先同步上传一次');
       const file = await res.json();
-      const jsonStr = decodeURIComponent(escape(atob(file.content.replace(/\s/g, ''))));
+      const jsonStr = fromBase64(file.content);
       const data = JSON.parse(jsonStr);
       if (!confirm(
         `从 GitHub 加载数据？\n\n` +
@@ -763,6 +765,10 @@ function bindPlansEvents() {
       document.getElementById('photo-modal-title').textContent = '「' + plan.title + '」';
       document.getElementById('photo-input').value = '';
       document.getElementById('photo-preview').style.display = 'none';
+      document.getElementById('photo-modal-confirm').textContent = '上传完成 ✓';
+      document.getElementById('photo-modal-confirm').disabled = false;
+      _photoData = null;
+      _photoReady = true;
       document.getElementById('photo-modal-overlay').classList.add('show');
     });
   });
@@ -787,44 +793,87 @@ function bindPlansEvents() {
   });
 }
 
-// Photo upload modal — convert to base64 and store directly
+// Photo upload modal
+let _photoReady = false;
+let _photoData = null;
+
 document.getElementById('photo-input').addEventListener('change', function() {
   const file = this.files[0];
   if (!file) return;
+  _photoReady = false;
+  const preview = document.getElementById('photo-preview');
+  const confirmBtn = document.getElementById('photo-modal-confirm');
+  preview.style.display = 'none';
+  confirmBtn.textContent = '处理中...';
+  confirmBtn.disabled = true;
+
   const reader = new FileReader();
   reader.onload = e => {
-    const preview = document.getElementById('photo-preview');
-    preview.src = e.target.result;
+    const src = e.target.result;
+    preview.src = src;
     preview.style.display = 'block';
-    // Compress large images to avoid localStorage overflow (>5MB)
-    if (file.size > 2 * 1024 * 1024) {
+    _photoData = src;
+    _photoReady = true;
+    confirmBtn.textContent = '上传完成 ✓';
+    confirmBtn.disabled = false;
+
+    // Compress >1.5MB images
+    if (file.size > 1.5 * 1024 * 1024) {
+      _photoReady = false;
+      confirmBtn.textContent = '压缩中...';
+      confirmBtn.disabled = true;
       const img = new Image();
       img.onload = () => {
+        const maxW = 1200;
+        const scale = Math.min(1, maxW / img.width);
         const canvas = document.createElement('canvas');
-        const scale = Math.min(1, Math.sqrt(2*1024*1024 / file.size));
         canvas.width = img.width * scale;
         canvas.height = img.height * scale;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        preview.src = canvas.toDataURL('image/jpeg', 0.85);
+        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+        _photoData = canvas.toDataURL('image/jpeg', 0.8);
+        preview.src = _photoData;
+        _photoReady = true;
+        confirmBtn.textContent = '上传完成 ✓';
+        confirmBtn.disabled = false;
       };
-      img.src = e.target.result;
+      img.onerror = () => {
+        _photoReady = true;
+        _photoData = null;
+        preview.style.display = 'none';
+        confirmBtn.textContent = '上传完成 ✓';
+        confirmBtn.disabled = false;
+        showToast('图片无法处理，将仅标记完成');
+      };
+      img.src = src;
     }
+  };
+  reader.onerror = () => {
+    _photoReady = true;
+    _photoData = null;
+    confirmBtn.textContent = '上传完成 ✓';
+    confirmBtn.disabled = false;
+    showToast('图片读取失败');
   };
   reader.readAsDataURL(file);
 });
 
 document.getElementById('photo-modal-confirm').addEventListener('click', () => {
   const planId = state.pendingPlanId;
-  if (!planId) return;
-  const preview = document.getElementById('photo-preview');
-  const photoData = preview.style.display !== 'none' ? preview.src : null;
-  const plans = DB.plans();
-  const p = plans.find(x => x.id === planId);
-  if (p) { p.done = true; p.doneAt = new Date().toISOString(); if (photoData) p.photo = photoData; }
-  DB.set('plans', plans);
+  if (!planId || !_photoReady) return;
+  const photoData = _photoData;
+  try {
+    const plans = DB.plans();
+    const p = plans.find(x => x.id === planId);
+    if (p) { p.done = true; p.doneAt = new Date().toISOString(); if (photoData) p.photo = photoData; }
+    DB.set('plans', plans);
+  } catch (err) {
+    showToast('存储失败：图片过大，请选小一点的');
+    return;
+  }
   document.getElementById('photo-modal-overlay').classList.remove('show');
   state.pendingPlanId = null;
+  _photoData = null;
+  _photoReady = false;
   renderPlans();
   showToast(photoData ? '已完成并上传照片 ✓' : '已完成 ✓');
 });
