@@ -315,8 +315,8 @@
       "title": "济州岛看海",
       "note": "",
       "createdBy": null,
-      "done": true,
-      "doneAt": "2026-06-14T09:51:29.243Z",
+      "done": false,
+      "doneAt": null,
       "photo": null,
       "createdAt": "2026-06-14T09:47:30.481Z"
     },
@@ -331,5 +331,5 @@
       "createdAt": "2026-06-14T09:50:14.663Z"
     }
   ],
-  "exportedAt": "2026-06-14T09:51:30.744Z"
+  "exportedAt": "2026-06-14T09:51:45.150Z"
 }
