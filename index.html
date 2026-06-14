@@ -927,8 +927,31 @@ document.getElementById('tl-next-month').addEventListener('click', () => {
   renderTimeline();
 });
 
-// Init
-renderToday();
+// Init — auto-pull from GitHub on open, then render
+(async function() {
+  const wasAutoSync = _syncEnabled;
+  _syncEnabled = false; // don't push during init
+  const saved = JSON.parse(localStorage.getItem('ct_gh_config') || '{}');
+  if (saved.token) {
+    try {
+      const res = await fetch(
+        'https://api.github.com/repos/ccc-app-code/little-plan/contents/backup.json',
+        { headers: { Authorization: `Bearer ${saved.token}`, Accept: 'application/vnd.github+json' } }
+      );
+      if (res.ok) {
+        const file = await res.json();
+        const jsonStr = fromBase64(file.content);
+        const data = JSON.parse(jsonStr);
+        if (data.users) DB.set('users', data.users);
+        if (data.defaultTodos) DB.set('defaultTodos', data.defaultTodos);
+        if (data.todos) DB.set('todos', data.todos);
+        if (data.plans) DB.set('plans', data.plans);
+      }
+    } catch {}
+  }
+  _syncEnabled = wasAutoSync;
+  renderToday();
+})();
 </script>
 </body>
 </html>
