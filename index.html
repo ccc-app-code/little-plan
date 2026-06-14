@@ -563,6 +563,36 @@ function bindExportImport() {
     return { owner: GH_OWNER, repo: GH_REPO, token };
   }
 
+  // Incremental sync helpers
+  function dataHash() {
+    // Hash of sync-relevant data (exclude photo content)
+    const d = buildBackupData();
+    const s = JSON.stringify({ users: d.users, todos: d.todos, plans: d.plans.map(p => ({ id: p.id, done: p.done, title: p.title })) });
+    let h = 0;
+    for (let i = 0; i < s.length; i++) { h = ((h << 5) - h) + s.charCodeAt(i); h |= 0; }
+    return h.toString(36);
+  }
+
+  function getSyncedPhotos() {
+    try { return new Set(JSON.parse(localStorage.getItem('ct_synced_photos') || '[]')); }
+    catch { return new Set(); }
+  }
+  function setSyncedPhotos(set) {
+    localStorage.setItem('ct_synced_photos', JSON.stringify([...set]));
+  }
+
+  function markPhotoSynced(planId) {
+    const set = getSyncedPhotos();
+    set.add(planId);
+    setSyncedPhotos(set);
+  }
+
+  function markPhotoChanged(planId) {
+    const set = getSyncedPhotos();
+    set.delete(planId);
+    setSyncedPhotos(set);
+  }
+
   function buildBackupData() {
     const plans = DB.plans().map(p => {
       if (p.photo && p.photo.startsWith('data:')) {
@@ -625,85 +655,99 @@ function bindExportImport() {
     status('Token 已保存 ✓', true);
   });
 
-  // Push to GitHub
+  // Push to GitHub (incremental)
   document.getElementById('btn-gh-push')?.addEventListener('click', async () => {
     const cfg = getConfig(); if (!cfg) return;
-    ghStatus.textContent = '正在上传...';
+    ghStatus.textContent = '检查变更...';
     try {
+      const hash = dataHash();
+      const lastHash = localStorage.getItem('ct_last_sync_hash');
+      if (hash === lastHash) { status('数据未变化，无需同步 ✓', true); return; }
+
+      // Push backup.json
+      ghStatus.textContent = '正在上传数据...';
       const data = buildBackupData();
       const jsonStr = JSON.stringify(data, null, 2);
       const base64 = toBase64(jsonStr);
-
-      // Get current file sha (if exists)
       let sha = null;
       try {
-        const getRes = await fetch(
-          `https://api.github.com/repos/ccc-app-code/little-plan/contents/backup.json`,
-          { headers: { Authorization: `Bearer ${cfg.token}`, Accept: 'application/vnd.github+json' } }
-        );
-        if (getRes.ok) { const f = await getRes.json(); sha = f.sha; }
+        const r = await fetch(`https://api.github.com/repos/ccc-app-code/little-plan/contents/backup.json`,
+          { headers: { Authorization: `Bearer ${cfg.token}`, Accept: 'application/vnd.github+json' } });
+        if (r.ok) { const f = await r.json(); sha = f.sha; }
       } catch {}
-
       const body = { message: `backup ${today()}`, content: base64 };
       if (sha) body.sha = sha;
+      const res = await fetch(`https://api.github.com/repos/ccc-app-code/little-plan/contents/backup.json`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${cfg.token}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.message || `HTTP ${res.status}`); }
 
-      const res = await fetch(
-        `https://api.github.com/repos/ccc-app-code/little-plan/contents/backup.json`,
-        {
-          method: 'PUT',
-          headers: { Authorization: `Bearer ${cfg.token}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        }
-      );
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.message || `HTTP ${res.status}`);
-      }
-      // Upload photos as separate files
+      // Upload only new/changed photos
       const plans = DB.plans().filter(p => p.photo && p.photo.startsWith('data:'));
-      for (const p of plans) {
-        await uploadPlanPhoto(cfg.token, p.id, p.photo);
+      const synced = getSyncedPhotos();
+      const toUpload = plans.filter(p => !synced.has(p.id));
+      if (toUpload.length > 0) {
+        for (let i = 0; i < toUpload.length; i++) {
+          ghStatus.textContent = `正在上传照片 ${i+1}/${toUpload.length}...`;
+          await uploadPlanPhoto(cfg.token, toUpload[i].id, toUpload[i].photo);
+          markPhotoSynced(toUpload[i].id);
+        }
       }
-      status('已同步到 GitHub ✓', true);
+
+      localStorage.setItem('ct_last_sync_hash', hash);
+      status(toUpload.length ? `已同步 ✓ (含 ${toUpload.length} 张新照片)` : '已同步 ✓', true);
     } catch (err) {
       status('同步失败: ' + err.message, false);
     }
   });
 
-  // Pull from GitHub
+  // Pull from GitHub (incremental)
   document.getElementById('btn-gh-pull')?.addEventListener('click', async () => {
     const cfg = getConfig(); if (!cfg) return;
-    ghStatus.textContent = '正在加载...';
+    ghStatus.textContent = '检查更新...';
     try {
-      const res = await fetch(
-        `https://api.github.com/repos/ccc-app-code/little-plan/contents/backup.json`,
-        { headers: { Authorization: `Bearer ${cfg.token}`, Accept: 'application/vnd.github+json' } }
-      );
-      if (!res.ok) throw new Error('未找到 backup.json，请先同步上传一次');
+      // Check if remote has changed
+      let remoteSha = null;
+      try {
+        const r = await fetch(`https://api.github.com/repos/ccc-app-code/little-plan/contents/backup.json`,
+          { headers: { Authorization: `Bearer ${cfg.token}`, Accept: 'application/vnd.github+json' } });
+        if (r.ok) { const f = await r.json(); remoteSha = f.sha; }
+      } catch {}
+      const lastSha = localStorage.getItem('ct_last_remote_sha');
+      if (remoteSha && remoteSha === lastSha) { status('已是最新，无需加载 ✓', true); return; }
+
+      ghStatus.textContent = '正在下载数据...';
+      const res = await fetch(`https://api.github.com/repos/ccc-app-code/little-plan/contents/backup.json`,
+        { headers: { Authorization: `Bearer ${cfg.token}`, Accept: 'application/vnd.github+json' } });
+      if (!res.ok) throw new Error('未找到 backup.json');
       const file = await res.json();
       const jsonStr = fromBase64(file.content);
       const data = JSON.parse(jsonStr);
-      if (!confirm(
-        `从 GitHub 加载数据？\n\n` +
-        `待办: ${(data.todos||[]).length} 条\n` +
-        `计划: ${(data.plans||[]).length} 条\n` +
-        `时间: ${data.exportedAt||'未知'}\n\n` +
-        `⚠ 当前数据将被覆盖！`
-      )) { ghStatus.textContent = ''; return; }
       restoreData(data);
-      // Download photos
+
+      // Download only missing/cached photos
       const plans = DB.plans().filter(p => p.photo && !p.photo.startsWith('data:'));
-      ghStatus.textContent = '正在下载照片...';
-      for (const p of plans) {
-        const photoUrl = await downloadPlanPhoto(cfg.token, p.id);
-        if (photoUrl) {
-          const allPlans = DB.plans();
-          const lp = allPlans.find(x => x.id === p.id);
-          if (lp) lp.photo = photoUrl;
-          DB.set('plans', allPlans);
+      const toDownload = plans.filter(p => {
+        const local = DB.plans().find(x => x.id === p.id);
+        return !local || !local.photo || !local.photo.startsWith('data:');
+      });
+      if (toDownload.length > 0) {
+        for (let i = 0; i < toDownload.length; i++) {
+          ghStatus.textContent = `正在下载照片 ${i+1}/${toDownload.length}...`;
+          const photoUrl = await downloadPlanPhoto(cfg.token, toDownload[i].id);
+          if (photoUrl) {
+            const all = DB.plans();
+            const lp = all.find(x => x.id === toDownload[i].id);
+            if (lp) lp.photo = photoUrl;
+            DB.set('plans', all);
+          }
         }
       }
-      status('已从 GitHub 加载 ✓', true);
+
+      if (remoteSha) localStorage.setItem('ct_last_remote_sha', remoteSha);
+      status(toDownload.length ? `已加载 ✓ (含 ${toDownload.length} 张照片)` : '已加载 ✓', true);
       renderStats(); renderToday();
     } catch (err) {
       status('加载失败: ' + err.message, false);
@@ -726,35 +770,33 @@ function bindExportImport() {
 async function doSync() {
   const saved = JSON.parse(localStorage.getItem('ct_gh_config') || '{}');
   if (!saved.token) return;
+  const hash = dataHash();
+  if (hash === localStorage.getItem('ct_last_sync_hash')) return;
   try {
-    const data = {
-      users: DB.users(), defaultTodos: DB.defaultTodos(),
-      todos: DB.todos(), plans: DB.plans().map(p => {
-        if (p.photo && p.photo.startsWith('data:')) return { ...p, photo: 'photo_' + p.id + '.jpg' };
-        return { ...p, photo: p.photo || null };
-      }),
-      exportedAt: new Date().toISOString(),
-    };
+    const data = buildBackupData();
     const jsonStr = JSON.stringify(data, null, 2);
     const base64 = toBase64(jsonStr);
     const apiUrl = `https://api.github.com/repos/ccc-app-code/little-plan/contents/backup.json`;
     let sha = null;
     try {
-      const getRes = await fetch(apiUrl,
-        { headers: { Authorization: `Bearer ${saved.token}`, Accept: 'application/vnd.github+json' } }
-      );
-      if (getRes.ok) { const f = await getRes.json(); sha = f.sha; }
+      const r = await fetch(apiUrl,
+        { headers: { Authorization: `Bearer ${saved.token}`, Accept: 'application/vnd.github+json' } });
+      if (r.ok) { const f = await r.json(); sha = f.sha; }
     } catch {}
     const body = { message: `auto-sync ${today()}`, content: base64 };
     if (sha) body.sha = sha;
     await fetch(apiUrl,
       { method: 'PUT', headers: { Authorization: `Bearer ${saved.token}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
     );
-    // Upload photos
+    // Upload only new photos
     const plans = DB.plans().filter(p => p.photo && p.photo.startsWith('data:'));
+    const synced = getSyncedPhotos();
     for (const p of plans) {
-      try { await uploadPlanPhoto(saved.token, p.id, p.photo); } catch {}
+      if (!synced.has(p.id)) {
+        try { await uploadPlanPhoto(saved.token, p.id, p.photo); markPhotoSynced(p.id); } catch {}
+      }
     }
+    localStorage.setItem('ct_last_sync_hash', hash);
     const el = document.getElementById('gh-status');
     if (el) { el.textContent = '🔄 已自动同步 ' + new Date().toLocaleTimeString('zh-CN'); el.style.color = '#5B8C6F'; }
   } catch {}
@@ -849,7 +891,7 @@ function bindPlansEvents() {
       e.stopPropagation();
       const plans = DB.plans();
       const p = plans.find(x => x.id === btn.dataset.planId);
-      if (p) { p.done = false; p.doneAt = null; p.photo = null; }
+      if (p) { p.done = false; p.doneAt = null; p.photo = null; markPhotoChanged(p.id); }
       DB.set('plans', plans); renderPlans(); showToast('已重新打开');
     });
   });
@@ -926,7 +968,7 @@ document.getElementById('photo-modal-confirm').addEventListener('click', () => {
   try {
     const plans = DB.plans();
     const p = plans.find(x => x.id === planId);
-    if (p) { p.done = true; p.doneAt = new Date().toISOString(); if (photoData) p.photo = photoData; }
+    if (p) { p.done = true; p.doneAt = new Date().toISOString(); if (photoData) { p.photo = photoData; markPhotoChanged(p.id); } }
     DB.set('plans', plans);
   } catch (err) {
     showToast('存储失败：图片过大，请选小一点的');
