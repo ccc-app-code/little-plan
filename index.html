@@ -311,15 +311,14 @@ function toBase64(str) {
 }
 function fromBase64(b64) {
   const clean = b64.replace(/\s/g,'');
-  // Try TextDecoder first (new encoding)
-  try {
-    const bytes = Uint8Array.from(atob(clean), c => c.charCodeAt(0));
-    const str = new TextDecoder().decode(bytes);
-    JSON.parse(str); // validate
-    return str;
-  } catch {}
-  // Fallback: old escape/unescape encoding (for legacy data)
-  return decodeURIComponent(escape(atob(clean)));
+  const methods = [
+    () => new TextDecoder().decode(Uint8Array.from(atob(clean), c => c.charCodeAt(0))),
+    () => decodeURIComponent(escape(atob(clean))),
+  ];
+  for (const fn of methods) {
+    try { const s = fn(); JSON.parse(s); return s; } catch {}
+  }
+  throw new Error('数据解码失败，请重新同步上传一次');
 }
 function formatDate(d) {
   const t = today();
@@ -824,43 +823,34 @@ document.getElementById('photo-input').addEventListener('change', function() {
 
   const reader = new FileReader();
   reader.onload = e => {
-    const src = e.target.result;
-    preview.src = src;
-    preview.style.display = 'block';
-    _photoData = src;
-    _photoReady = true;
-    confirmBtn.textContent = '上传完成 ✓';
-    confirmBtn.disabled = false;
-
-    // Compress >1.5MB images
-    if (file.size > 1.5 * 1024 * 1024) {
-      _photoReady = false;
-      confirmBtn.textContent = '压缩中...';
-      confirmBtn.disabled = true;
-      const img = new Image();
-      img.onload = () => {
-        const maxW = 1200;
-        const scale = Math.min(1, maxW / img.width);
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width * scale;
-        canvas.height = img.height * scale;
-        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-        _photoData = canvas.toDataURL('image/jpeg', 0.8);
-        preview.src = _photoData;
-        _photoReady = true;
-        confirmBtn.textContent = '上传完成 ✓';
-        confirmBtn.disabled = false;
-      };
-      img.onerror = () => {
-        _photoReady = true;
-        _photoData = null;
-        preview.style.display = 'none';
-        confirmBtn.textContent = '上传完成 ✓';
-        confirmBtn.disabled = false;
-        showToast('图片无法处理，将仅标记完成');
-      };
-      img.src = src;
-    }
+    // Always compress to avoid localStorage overflow
+    _photoReady = false;
+    confirmBtn.textContent = '压缩中...';
+    confirmBtn.disabled = true;
+    const img = new Image();
+    img.onload = () => {
+      const maxW = 1200;
+      const scale = Math.min(1, maxW / img.width);
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      _photoData = canvas.toDataURL('image/jpeg', 0.75);
+      preview.src = _photoData;
+      preview.style.display = 'block';
+      _photoReady = true;
+      confirmBtn.textContent = '上传完成 ✓';
+      confirmBtn.disabled = false;
+    };
+    img.onerror = () => {
+      _photoReady = true;
+      _photoData = null;
+      preview.style.display = 'none';
+      confirmBtn.textContent = '上传完成 ✓';
+      confirmBtn.disabled = false;
+      showToast('图片无法处理，将仅标记完成');
+    };
+    img.src = e.target.result;
   };
   reader.onerror = () => {
     _photoReady = true;
