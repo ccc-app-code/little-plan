@@ -311,14 +311,10 @@ function toBase64(str) {
 }
 function fromBase64(b64) {
   const clean = b64.replace(/\s/g,'');
-  const methods = [
-    () => new TextDecoder().decode(Uint8Array.from(atob(clean), c => c.charCodeAt(0))),
-    () => decodeURIComponent(escape(atob(clean))),
-  ];
-  for (const fn of methods) {
-    try { const s = fn(); JSON.parse(s); return s; } catch {}
-  }
-  throw new Error('数据解码失败，请重新同步上传一次');
+  const binary = atob(clean);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
 }
 function formatDate(d) {
   const t = today();
@@ -568,11 +564,17 @@ function bindExportImport() {
   }
 
   function buildBackupData() {
+    const plans = DB.plans().map(p => {
+      if (p.photo && p.photo.startsWith('data:')) {
+        return { ...p, photo: 'photo_' + p.id + '.jpg' }; // keep filename, strip data
+      }
+      return { ...p, photo: p.photo || null };
+    });
     return {
       users: DB.users(),
       defaultTodos: DB.defaultTodos(),
       todos: DB.todos(),
-      plans: DB.plans(),
+      plans,
       exportedAt: new Date().toISOString(),
     };
   }
@@ -583,6 +585,36 @@ function bindExportImport() {
     if (data.defaultTodos) DB.set('defaultTodos', data.defaultTodos);
     if (data.todos) DB.set('todos', data.todos);
     if (data.plans) DB.set('plans', data.plans);
+  }
+
+  // Upload a plan photo as separate file to GitHub
+  async function uploadPlanPhoto(token, planId, dataUrl) {
+    const [head, b64] = dataUrl.split(',');
+    const mime = (head.match(/:(.*?);/)||['','image/jpeg'])[1];
+    const path = `photos/photo_${planId}.jpg`;
+    let sha = null;
+    try {
+      const r = await fetch(`https://api.github.com/repos/ccc-app-code/little-plan/contents/${path}`,
+        { headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' } });
+      if (r.ok) { const f = await r.json(); sha = f.sha; }
+    } catch {}
+    const body = { message: 'photo', content: b64.replace(/\s/g,'') };
+    if (sha) body.sha = sha;
+    await fetch(`https://api.github.com/repos/ccc-app-code/little-plan/contents/${path}`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  }
+
+  // Download a plan photo from GitHub, return data URL
+  async function downloadPlanPhoto(token, planId) {
+    const path = `photos/photo_${planId}.jpg`;
+    const r = await fetch(`https://api.github.com/repos/ccc-app-code/little-plan/contents/${path}`,
+      { headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' } });
+    if (!r.ok) return null;
+    const file = await r.json();
+    return 'data:image/jpeg;base64,' + file.content.replace(/\s/g,'');
   }
 
   // Save config
@@ -627,6 +659,11 @@ function bindExportImport() {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.message || `HTTP ${res.status}`);
       }
+      // Upload photos as separate files
+      const plans = DB.plans().filter(p => p.photo && p.photo.startsWith('data:'));
+      for (const p of plans) {
+        await uploadPlanPhoto(cfg.token, p.id, p.photo);
+      }
       status('已同步到 GitHub ✓', true);
     } catch (err) {
       status('同步失败: ' + err.message, false);
@@ -654,6 +691,18 @@ function bindExportImport() {
         `⚠ 当前数据将被覆盖！`
       )) { ghStatus.textContent = ''; return; }
       restoreData(data);
+      // Download photos
+      const plans = DB.plans().filter(p => p.photo && !p.photo.startsWith('data:'));
+      ghStatus.textContent = '正在下载照片...';
+      for (const p of plans) {
+        const photoUrl = await downloadPlanPhoto(cfg.token, p.id);
+        if (photoUrl) {
+          const allPlans = DB.plans();
+          const lp = allPlans.find(x => x.id === p.id);
+          if (lp) lp.photo = photoUrl;
+          DB.set('plans', allPlans);
+        }
+      }
       status('已从 GitHub 加载 ✓', true);
       renderStats(); renderToday();
     } catch (err) {
@@ -680,11 +729,14 @@ async function doSync() {
   try {
     const data = {
       users: DB.users(), defaultTodos: DB.defaultTodos(),
-      todos: DB.todos(), plans: DB.plans(),
+      todos: DB.todos(), plans: DB.plans().map(p => {
+        if (p.photo && p.photo.startsWith('data:')) return { ...p, photo: 'photo_' + p.id + '.jpg' };
+        return { ...p, photo: p.photo || null };
+      }),
       exportedAt: new Date().toISOString(),
     };
     const jsonStr = JSON.stringify(data, null, 2);
-    const base64 = btoa(unescape(encodeURIComponent(jsonStr)));
+    const base64 = toBase64(jsonStr);
     const apiUrl = `https://api.github.com/repos/ccc-app-code/little-plan/contents/backup.json`;
     let sha = null;
     try {
@@ -698,6 +750,11 @@ async function doSync() {
     await fetch(apiUrl,
       { method: 'PUT', headers: { Authorization: `Bearer ${saved.token}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
     );
+    // Upload photos
+    const plans = DB.plans().filter(p => p.photo && p.photo.startsWith('data:'));
+    for (const p of plans) {
+      try { await uploadPlanPhoto(saved.token, p.id, p.photo); } catch {}
+    }
     const el = document.getElementById('gh-status');
     if (el) { el.textContent = '🔄 已自动同步 ' + new Date().toLocaleTimeString('zh-CN'); el.style.color = '#5B8C6F'; }
   } catch {}
@@ -950,7 +1007,22 @@ document.getElementById('tl-next-month').addEventListener('click', () => {
         if (data.users) DB.set('users', data.users);
         if (data.defaultTodos) DB.set('defaultTodos', data.defaultTodos);
         if (data.todos) DB.set('todos', data.todos);
-        if (data.plans) DB.set('plans', data.plans);
+        if (data.plans) {
+          DB.set('plans', data.plans);
+          // Download photos for plans that have filename references
+          const plans = DB.plans().filter(p => p.photo && !p.photo.startsWith('data:'));
+          for (const p of plans) {
+            try {
+              const photoUrl = await downloadPlanPhoto(saved.token, p.id);
+              if (photoUrl) {
+                const all = DB.plans();
+                const lp = all.find(x => x.id === p.id);
+                if (lp) lp.photo = photoUrl;
+                DB.set('plans', all);
+              }
+            } catch {}
+          }
+        }
       }
     } catch {}
   }
