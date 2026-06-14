@@ -531,6 +531,16 @@ function renderStats() {
   bindExportImport();
 }
 
+// ── Auto-sync state ────────────────────────────────────
+let _syncTimer = null;
+let _syncEnabled = localStorage.getItem('ct_auto_sync') === '1';
+
+window.autoSync = function() {
+  if (!_syncEnabled) return;
+  clearTimeout(_syncTimer);
+  _syncTimer = setTimeout(() => doSync(), 1500);
+};
+
 function bindExportImport() {
   const ghOwner = document.getElementById('gh-owner');
   const ghRepo = document.getElementById('gh-repo');
@@ -699,16 +709,6 @@ function bindExportImport() {
     });
   }
 }
-
-// ── Auto-sync ───────────────────────────────────────────
-let _syncTimer = null;
-let _syncEnabled = localStorage.getItem('ct_auto_sync') === '1';
-
-window.autoSync = function() {
-  if (!_syncEnabled) return;
-  clearTimeout(_syncTimer);
-  _syncTimer = setTimeout(() => doSync(), 1500);
-};
 
 async function doSync() {
   const saved = JSON.parse(localStorage.getItem('ct_gh_config') || '{}');
