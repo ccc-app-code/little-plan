@@ -173,8 +173,8 @@
       "title": "做饭",
       "category": "生活",
       "icon": "🍳",
-      "completed": false,
-      "completedAt": null,
+      "completed": true,
+      "completedAt": "2026-06-14T09:36:43.509Z",
       "createdAt": "2026-06-14T07:11:40.301Z"
     },
     {
@@ -184,33 +184,142 @@
       "title": "做饭",
       "category": "生活",
       "icon": "🍳",
-      "completed": false,
-      "completedAt": null,
+      "completed": true,
+      "completedAt": "2026-06-14T09:36:46.046Z",
       "createdAt": "2026-06-14T07:11:40.302Z"
     },
     {
-      "id": "mqdg4t6nlfyd",
+      "id": "mqdlba8pi607",
       "userId": 1,
       "date": "2026-06-14",
-      "title": "不吃零食",
+      "title": "爬楼梯",
       "category": "健康",
-      "icon": "🚫",
-      "completed": false,
-      "completedAt": null,
-      "createdAt": "2026-06-14T07:11:49.439Z"
+      "icon": "🪜",
+      "completed": true,
+      "completedAt": "2026-06-14T09:36:51.540Z",
+      "createdAt": "2026-06-14T09:36:49.561Z"
     },
     {
-      "id": "mqdg4t6n53nh",
+      "id": "mqdlba8pzd7k",
       "userId": 2,
       "date": "2026-06-14",
-      "title": "不吃零食",
+      "title": "爬楼梯",
       "category": "健康",
-      "icon": "🚫",
+      "icon": "🪜",
+      "completed": true,
+      "completedAt": "2026-06-14T09:36:52.152Z",
+      "createdAt": "2026-06-14T09:36:49.561Z"
+    },
+    {
+      "id": "mqdlbeb35c4o",
+      "userId": 1,
+      "date": "2026-06-14",
+      "title": "学英语",
+      "category": "学习",
+      "icon": "📝",
+      "completed": true,
+      "completedAt": "2026-06-14T09:36:57.006Z",
+      "createdAt": "2026-06-14T09:36:54.831Z"
+    },
+    {
+      "id": "mqdlbeb3xyno",
+      "userId": 2,
+      "date": "2026-06-14",
+      "title": "学英语",
+      "category": "学习",
+      "icon": "📝",
       "completed": false,
       "completedAt": null,
-      "createdAt": "2026-06-14T07:11:49.439Z"
+      "createdAt": "2026-06-14T09:36:54.831Z"
+    },
+    {
+      "id": "mqdlbis04jim",
+      "userId": 1,
+      "date": "2026-06-14",
+      "title": "3D打印",
+      "category": "工作",
+      "icon": "🖨️",
+      "completed": true,
+      "completedAt": "2026-06-14T09:37:02.441Z",
+      "createdAt": "2026-06-14T09:37:00.624Z"
+    },
+    {
+      "id": "mqdlbis0hrp2",
+      "userId": 2,
+      "date": "2026-06-14",
+      "title": "3D打印",
+      "category": "工作",
+      "icon": "🖨️",
+      "completed": false,
+      "completedAt": null,
+      "createdAt": "2026-06-14T09:37:00.625Z"
+    },
+    {
+      "id": "mqdlbz8tl96b",
+      "userId": 1,
+      "date": "2026-06-14",
+      "title": "Vibo coding",
+      "category": "工作",
+      "icon": "💻",
+      "completed": true,
+      "completedAt": "2026-06-14T09:37:24.239Z",
+      "createdAt": "2026-06-14T09:37:21.965Z"
+    },
+    {
+      "id": "mqdlbz8t0rui",
+      "userId": 2,
+      "date": "2026-06-14",
+      "title": "Vibo coding",
+      "category": "工作",
+      "icon": "💻",
+      "completed": true,
+      "completedAt": "2026-06-14T09:37:56.657Z",
+      "createdAt": "2026-06-14T09:37:21.965Z"
+    },
+    {
+      "id": "mqdlcdhtol0j",
+      "userId": 1,
+      "date": "2026-06-14",
+      "title": "打扫房间",
+      "category": "生活",
+      "icon": "🧹",
+      "completed": true,
+      "completedAt": "2026-06-14T09:37:42.250Z",
+      "createdAt": "2026-06-14T09:37:40.433Z"
+    },
+    {
+      "id": "mqdlcdhtozfl",
+      "userId": 2,
+      "date": "2026-06-14",
+      "title": "打扫房间",
+      "category": "生活",
+      "icon": "🧹",
+      "completed": true,
+      "completedAt": "2026-06-14T09:37:43.782Z",
+      "createdAt": "2026-06-14T09:37:40.433Z"
     }
   ],
-  "plans": [],
-  "exportedAt": "2026-06-14T07:11:58.566Z"
+  "plans": [
+    {
+      "id": "pmqdljbtidanq",
+      "title": "汉拿山",
+      "note": "",
+      "createdBy": null,
+      "done": true,
+      "doneAt": "2026-06-14T09:47:22.281Z",
+      "photo": null,
+      "createdAt": "2026-06-14T09:43:04.854Z"
+    },
+    {
+      "id": "pmqdlp0s10xnq",
+      "title": "济州岛看海",
+      "note": "",
+      "createdBy": null,
+      "done": false,
+      "doneAt": null,
+      "photo": null,
+      "createdAt": "2026-06-14T09:47:30.481Z"
+    }
+  ],
+  "exportedAt": "2026-06-14T09:47:48.250Z"
 }
