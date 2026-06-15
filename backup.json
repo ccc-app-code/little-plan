@@ -418,6 +418,17 @@
       "completed": false,
       "completedAt": null,
       "createdAt": "2026-06-15T00:59:21.546Z"
+    },
+    {
+      "id": "mqeiyob1p97f",
+      "userId": 2,
+      "date": "2026-06-15",
+      "title": "两个鸡蛋",
+      "category": "自定义",
+      "icon": "📌",
+      "completed": true,
+      "completedAt": "2026-06-15T01:18:49.733Z",
+      "createdAt": "2026-06-15T01:18:48.205Z"
     }
   ],
   "plans": [
@@ -452,5 +463,5 @@
       "createdAt": "2026-06-14T10:25:46.333Z"
     }
   ],
-  "exportedAt": "2026-06-15T00:59:49.381Z"
+  "exportedAt": "2026-06-15T01:19:15.861Z"
 }
