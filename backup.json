@@ -338,9 +338,86 @@
       "title": "工作处理",
       "category": "自定义",
       "icon": "📌",
+      "completed": true,
+      "completedAt": "2026-06-15T00:58:31.272Z",
+      "createdAt": "2026-06-14T10:35:32.098Z"
+    },
+    {
+      "id": "mqei912bvk9r",
+      "userId": 1,
+      "date": "2026-06-15",
+      "title": "早餐吃鸡蛋",
+      "category": "自定义",
+      "icon": "📌",
+      "completed": true,
+      "completedAt": "2026-06-15T00:58:54.141Z",
+      "createdAt": "2026-06-15T00:58:51.683Z"
+    },
+    {
+      "id": "mqei9b3b1fjv",
+      "userId": 1,
+      "date": "2026-06-15",
+      "title": "学英语",
+      "category": "学习",
+      "icon": "📝",
       "completed": false,
       "completedAt": null,
-      "createdAt": "2026-06-14T10:35:32.098Z"
+      "createdAt": "2026-06-15T00:59:04.679Z"
+    },
+    {
+      "id": "mqei9b3br2jt",
+      "userId": 2,
+      "date": "2026-06-15",
+      "title": "学英语",
+      "category": "学习",
+      "icon": "📝",
+      "completed": false,
+      "completedAt": null,
+      "createdAt": "2026-06-15T00:59:04.679Z"
+    },
+    {
+      "id": "mqei9eyn9tey",
+      "userId": 1,
+      "date": "2026-06-15",
+      "title": "阅读 30 分钟",
+      "category": "学习",
+      "icon": "📖",
+      "completed": false,
+      "completedAt": null,
+      "createdAt": "2026-06-15T00:59:09.695Z"
+    },
+    {
+      "id": "mqei9eynxayc",
+      "userId": 2,
+      "date": "2026-06-15",
+      "title": "阅读 30 分钟",
+      "category": "学习",
+      "icon": "📖",
+      "completed": false,
+      "completedAt": null,
+      "createdAt": "2026-06-15T00:59:09.695Z"
+    },
+    {
+      "id": "mqei9o3uvbnz",
+      "userId": 1,
+      "date": "2026-06-15",
+      "title": "喝水 8 杯",
+      "category": "健康",
+      "icon": "💧",
+      "completed": false,
+      "completedAt": null,
+      "createdAt": "2026-06-15T00:59:21.546Z"
+    },
+    {
+      "id": "mqei9o3u1l9q",
+      "userId": 2,
+      "date": "2026-06-15",
+      "title": "喝水 8 杯",
+      "category": "健康",
+      "icon": "💧",
+      "completed": false,
+      "completedAt": null,
+      "createdAt": "2026-06-15T00:59:21.546Z"
     }
   ],
   "plans": [
@@ -375,5 +452,5 @@
       "createdAt": "2026-06-14T10:25:46.333Z"
     }
   ],
-  "exportedAt": "2026-06-14T10:36:04.599Z"
+  "exportedAt": "2026-06-15T00:59:49.381Z"
 }
