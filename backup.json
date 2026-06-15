@@ -393,8 +393,8 @@
       "title": "阅读 30 分钟",
       "category": "学习",
       "icon": "📖",
-      "completed": false,
-      "completedAt": null,
+      "completed": true,
+      "completedAt": "2026-06-15T14:48:12.551Z",
       "createdAt": "2026-06-15T00:59:09.695Z"
     },
     {
@@ -415,8 +415,8 @@
       "title": "喝水 8 杯",
       "category": "健康",
       "icon": "💧",
-      "completed": false,
-      "completedAt": null,
+      "completed": true,
+      "completedAt": "2026-06-15T14:48:13.567Z",
       "createdAt": "2026-06-15T00:59:21.546Z"
     },
     {
@@ -440,6 +440,17 @@
       "completed": true,
       "completedAt": "2026-06-15T14:46:48.364Z",
       "createdAt": "2026-06-15T14:46:47.407Z"
+    },
+    {
+      "id": "mqfbvvlqyw0p",
+      "userId": 2,
+      "date": "2026-06-15",
+      "title": "❤️",
+      "category": "自定义",
+      "icon": "📌",
+      "completed": true,
+      "completedAt": "2026-06-15T14:48:27.376Z",
+      "createdAt": "2026-06-15T14:48:26.558Z"
     }
   ],
   "plans": [
@@ -474,5 +485,5 @@
       "createdAt": "2026-06-14T10:25:46.333Z"
     }
   ],
-  "exportedAt": "2026-06-15T14:46:53.066Z"
+  "exportedAt": "2026-06-15T14:48:34.614Z"
 }
