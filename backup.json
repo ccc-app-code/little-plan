@@ -360,8 +360,8 @@
       "title": "学英语",
       "category": "学习",
       "icon": "📝",
-      "completed": false,
-      "completedAt": null,
+      "completed": true,
+      "completedAt": "2026-06-15T14:46:26.311Z",
       "createdAt": "2026-06-15T00:59:04.679Z"
     },
     {
@@ -429,6 +429,17 @@
       "completed": true,
       "completedAt": "2026-06-15T01:18:49.733Z",
       "createdAt": "2026-06-15T01:18:48.205Z"
+    },
+    {
+      "id": "mqfbtr3js9x4",
+      "userId": 1,
+      "date": "2026-06-15",
+      "title": "💗",
+      "category": "自定义",
+      "icon": "📌",
+      "completed": true,
+      "completedAt": "2026-06-15T14:46:48.364Z",
+      "createdAt": "2026-06-15T14:46:47.407Z"
     }
   ],
   "plans": [
@@ -463,5 +474,5 @@
       "createdAt": "2026-06-14T10:25:46.333Z"
     }
   ],
-  "exportedAt": "2026-06-15T01:19:15.861Z"
+  "exportedAt": "2026-06-15T14:46:53.066Z"
 }
