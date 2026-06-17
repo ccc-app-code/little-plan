@@ -517,6 +517,50 @@
       "completed": true,
       "completedAt": "2026-06-17T14:00:29.018Z",
       "createdAt": "2026-06-17T14:00:27.284Z"
+    },
+    {
+      "id": "mqi6vj93zdaa",
+      "userId": 1,
+      "date": "2026-06-17",
+      "title": "Vibo coding",
+      "category": "工作",
+      "icon": "💻",
+      "completed": true,
+      "completedAt": "2026-06-17T14:51:33.973Z",
+      "createdAt": "2026-06-17T14:51:30.999Z"
+    },
+    {
+      "id": "mqi6vj93z5js",
+      "userId": 2,
+      "date": "2026-06-17",
+      "title": "Vibo coding",
+      "category": "工作",
+      "icon": "💻",
+      "completed": true,
+      "completedAt": "2026-06-17T14:51:35.248Z",
+      "createdAt": "2026-06-17T14:51:30.999Z"
+    },
+    {
+      "id": "mqi6vq5igqnx",
+      "userId": 1,
+      "date": "2026-06-17",
+      "title": "喝水 8 杯",
+      "category": "健康",
+      "icon": "💧",
+      "completed": false,
+      "completedAt": null,
+      "createdAt": "2026-06-17T14:51:39.942Z"
+    },
+    {
+      "id": "mqi6vq5i5fuj",
+      "userId": 2,
+      "date": "2026-06-17",
+      "title": "喝水 8 杯",
+      "category": "健康",
+      "icon": "💧",
+      "completed": true,
+      "completedAt": "2026-06-17T14:51:43.357Z",
+      "createdAt": "2026-06-17T14:51:39.942Z"
     }
   ],
   "plans": [
@@ -551,5 +595,5 @@
       "createdAt": "2026-06-14T10:25:46.333Z"
     }
   ],
-  "exportedAt": "2026-06-17T14:00:33.939Z"
+  "exportedAt": "2026-06-17T14:51:54.628Z"
 }
