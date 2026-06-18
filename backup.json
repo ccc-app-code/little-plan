@@ -561,6 +561,149 @@
       "completed": true,
       "completedAt": "2026-06-17T14:51:43.357Z",
       "createdAt": "2026-06-17T14:51:39.942Z"
+    },
+    {
+      "id": "mqiuevhp7twh",
+      "userId": 1,
+      "date": "2026-06-17",
+      "title": "❤️",
+      "category": "自定义",
+      "icon": "📌",
+      "completed": true,
+      "completedAt": "2026-06-18T01:50:25.910Z",
+      "createdAt": "2026-06-18T01:50:24.493Z"
+    },
+    {
+      "id": "mqiufficz3x4",
+      "userId": 2,
+      "date": "2026-06-17",
+      "title": "❤️",
+      "category": "自定义",
+      "icon": "📌",
+      "completed": true,
+      "completedAt": "2026-06-18T01:50:51.173Z",
+      "createdAt": "2026-06-18T01:50:50.436Z"
+    },
+    {
+      "id": "mqiug09srd83",
+      "userId": 1,
+      "date": "2026-06-18",
+      "title": "早餐一个鸡蛋",
+      "category": "自定义",
+      "icon": "📌",
+      "completed": true,
+      "completedAt": "2026-06-18T01:51:19.733Z",
+      "createdAt": "2026-06-18T01:51:17.344Z"
+    },
+    {
+      "id": "mqiug7eb0cwn",
+      "userId": 1,
+      "date": "2026-06-18",
+      "title": "学英语",
+      "category": "学习",
+      "icon": "📝",
+      "completed": false,
+      "completedAt": null,
+      "createdAt": "2026-06-18T01:51:26.579Z"
+    },
+    {
+      "id": "mqiug7ebyhy6",
+      "userId": 2,
+      "date": "2026-06-18",
+      "title": "学英语",
+      "category": "学习",
+      "icon": "📝",
+      "completed": false,
+      "completedAt": null,
+      "createdAt": "2026-06-18T01:51:26.579Z"
+    },
+    {
+      "id": "mqiug91tjdev",
+      "userId": 1,
+      "date": "2026-06-18",
+      "title": "Vibo coding",
+      "category": "工作",
+      "icon": "💻",
+      "completed": false,
+      "completedAt": null,
+      "createdAt": "2026-06-18T01:51:28.721Z"
+    },
+    {
+      "id": "mqiug91t8jw0",
+      "userId": 2,
+      "date": "2026-06-18",
+      "title": "Vibo coding",
+      "category": "工作",
+      "icon": "💻",
+      "completed": false,
+      "completedAt": null,
+      "createdAt": "2026-06-18T01:51:28.721Z"
+    },
+    {
+      "id": "mqiuga1k4tpq",
+      "userId": 1,
+      "date": "2026-06-18",
+      "title": "3D打印",
+      "category": "工作",
+      "icon": "🖨️",
+      "completed": false,
+      "completedAt": null,
+      "createdAt": "2026-06-18T01:51:30.008Z"
+    },
+    {
+      "id": "mqiuga1kfmao",
+      "userId": 2,
+      "date": "2026-06-18",
+      "title": "3D打印",
+      "category": "工作",
+      "icon": "🖨️",
+      "completed": false,
+      "completedAt": null,
+      "createdAt": "2026-06-18T01:51:30.008Z"
+    },
+    {
+      "id": "mqiugcgu3hog",
+      "userId": 1,
+      "date": "2026-06-18",
+      "title": "洗衣服",
+      "category": "生活",
+      "icon": "🧺",
+      "completed": false,
+      "completedAt": null,
+      "createdAt": "2026-06-18T01:51:33.151Z"
+    },
+    {
+      "id": "mqiugcgvyge6",
+      "userId": 2,
+      "date": "2026-06-18",
+      "title": "洗衣服",
+      "category": "生活",
+      "icon": "🧺",
+      "completed": false,
+      "completedAt": null,
+      "createdAt": "2026-06-18T01:51:33.151Z"
+    },
+    {
+      "id": "mqiughmn5tb4",
+      "userId": 1,
+      "date": "2026-06-18",
+      "title": "完成今日工作重点",
+      "category": "工作",
+      "icon": "🎯",
+      "completed": false,
+      "completedAt": null,
+      "createdAt": "2026-06-18T01:51:39.840Z"
+    },
+    {
+      "id": "mqiughmoxkcu",
+      "userId": 2,
+      "date": "2026-06-18",
+      "title": "完成今日工作重点",
+      "category": "工作",
+      "icon": "🎯",
+      "completed": false,
+      "completedAt": null,
+      "createdAt": "2026-06-18T01:51:39.840Z"
     }
   ],
   "plans": [
@@ -595,5 +738,5 @@
       "createdAt": "2026-06-14T10:25:46.333Z"
     }
   ],
-  "exportedAt": "2026-06-17T14:51:54.628Z"
+  "exportedAt": "2026-06-18T01:51:45.909Z"
 }
