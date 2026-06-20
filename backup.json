@@ -704,6 +704,116 @@
       "completed": false,
       "completedAt": null,
       "createdAt": "2026-06-18T01:51:39.840Z"
+    },
+    {
+      "id": "mqmiejsylzxd",
+      "userId": 1,
+      "date": "2026-06-20",
+      "title": "吃水果",
+      "category": "健康",
+      "icon": "🍎",
+      "completed": true,
+      "completedAt": "2026-06-20T15:25:36.660Z",
+      "createdAt": "2026-06-20T15:25:18.658Z"
+    },
+    {
+      "id": "mqmiejsyapc3",
+      "userId": 2,
+      "date": "2026-06-20",
+      "title": "吃水果",
+      "category": "健康",
+      "icon": "🍎",
+      "completed": true,
+      "completedAt": "2026-06-20T15:25:42.055Z",
+      "createdAt": "2026-06-20T15:25:18.658Z"
+    },
+    {
+      "id": "mqmier69xrkv",
+      "userId": 1,
+      "date": "2026-06-20",
+      "title": "护肤",
+      "category": "生活",
+      "icon": "✨",
+      "completed": true,
+      "completedAt": "2026-06-20T15:25:36.299Z",
+      "createdAt": "2026-06-20T15:25:28.209Z"
+    },
+    {
+      "id": "mqmier6905kv",
+      "userId": 2,
+      "date": "2026-06-20",
+      "title": "护肤",
+      "category": "生活",
+      "icon": "✨",
+      "completed": true,
+      "completedAt": "2026-06-20T15:25:41.684Z",
+      "createdAt": "2026-06-20T15:25:28.209Z"
+    },
+    {
+      "id": "mqmiesazxop0",
+      "userId": 1,
+      "date": "2026-06-20",
+      "title": "学英语",
+      "category": "学习",
+      "icon": "📝",
+      "completed": true,
+      "completedAt": "2026-06-20T15:25:35.782Z",
+      "createdAt": "2026-06-20T15:25:29.675Z"
+    },
+    {
+      "id": "mqmiesazdjf0",
+      "userId": 2,
+      "date": "2026-06-20",
+      "title": "学英语",
+      "category": "学习",
+      "icon": "📝",
+      "completed": true,
+      "completedAt": "2026-06-20T15:25:41.334Z",
+      "createdAt": "2026-06-20T15:25:29.675Z"
+    },
+    {
+      "id": "mqmieto4f6ev",
+      "userId": 1,
+      "date": "2026-06-20",
+      "title": "3D打印",
+      "category": "工作",
+      "icon": "🖨️",
+      "completed": true,
+      "completedAt": "2026-06-20T15:25:35.276Z",
+      "createdAt": "2026-06-20T15:25:31.444Z"
+    },
+    {
+      "id": "mqmieto4b2oz",
+      "userId": 2,
+      "date": "2026-06-20",
+      "title": "3D打印",
+      "category": "工作",
+      "icon": "🖨️",
+      "completed": false,
+      "completedAt": null,
+      "createdAt": "2026-06-20T15:25:31.444Z"
+    },
+    {
+      "id": "mqmieuaw0vxt",
+      "userId": 1,
+      "date": "2026-06-20",
+      "title": "洗衣服",
+      "category": "生活",
+      "icon": "🧺",
+      "completed": true,
+      "completedAt": "2026-06-20T15:25:34.831Z",
+      "createdAt": "2026-06-20T15:25:32.264Z"
+    },
+    {
+      "id": "mqmieuawcuqf",
+      "userId": 2,
+      "date": "2026-06-20",
+      "title": "洗衣服",
+      "category": "生活",
+      "icon": "🧺",
+      "completed": true,
+      "completedAt": "2026-06-20T15:25:40.701Z",
+      "createdAt": "2026-06-20T15:25:32.264Z"
     }
   ],
   "plans": [
@@ -738,5 +848,5 @@
       "createdAt": "2026-06-14T10:25:46.333Z"
     }
   ],
-  "exportedAt": "2026-06-18T01:51:45.909Z"
+  "exportedAt": "2026-06-20T15:26:01.202Z"
 }
