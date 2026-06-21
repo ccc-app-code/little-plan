@@ -814,6 +814,83 @@
       "completed": true,
       "completedAt": "2026-06-20T15:25:40.701Z",
       "createdAt": "2026-06-20T15:25:32.264Z"
+    },
+    {
+      "id": "mqnp24kfqkju",
+      "userId": 1,
+      "date": "2026-06-21",
+      "title": "吃水果",
+      "category": "健康",
+      "icon": "🍎",
+      "completed": true,
+      "completedAt": "2026-06-21T11:19:48.774Z",
+      "createdAt": "2026-06-21T11:19:22.527Z"
+    },
+    {
+      "id": "mqnp2ctjx8y2",
+      "userId": 1,
+      "date": "2026-06-21",
+      "title": "运动 30 分钟",
+      "category": "健康",
+      "icon": "🏃",
+      "completed": true,
+      "completedAt": "2026-06-21T11:19:49.588Z",
+      "createdAt": "2026-06-21T11:19:33.223Z"
+    },
+    {
+      "id": "mqnp2fqax2cq",
+      "userId": 1,
+      "date": "2026-06-21",
+      "title": "3D打印",
+      "category": "工作",
+      "icon": "🖨️",
+      "completed": true,
+      "completedAt": "2026-06-21T11:19:50.238Z",
+      "createdAt": "2026-06-21T11:19:36.994Z"
+    },
+    {
+      "id": "mqnp2hellzed",
+      "userId": 1,
+      "date": "2026-06-21",
+      "title": "Vibo coding",
+      "category": "工作",
+      "icon": "💻",
+      "completed": true,
+      "completedAt": "2026-06-21T11:19:51.250Z",
+      "createdAt": "2026-06-21T11:19:39.166Z"
+    },
+    {
+      "id": "mqnp2ioaswt6",
+      "userId": 1,
+      "date": "2026-06-21",
+      "title": "洗衣服",
+      "category": "生活",
+      "icon": "🧺",
+      "completed": true,
+      "completedAt": "2026-06-21T11:19:51.720Z",
+      "createdAt": "2026-06-21T11:19:40.810Z"
+    },
+    {
+      "id": "mqnp2jsu4zws",
+      "userId": 1,
+      "date": "2026-06-21",
+      "title": "学英语",
+      "category": "学习",
+      "icon": "📝",
+      "completed": true,
+      "completedAt": "2026-06-21T11:19:52.134Z",
+      "createdAt": "2026-06-21T11:19:42.270Z"
+    },
+    {
+      "id": "mqnp2ki8qzww",
+      "userId": 1,
+      "date": "2026-06-21",
+      "title": "做饭",
+      "category": "生活",
+      "icon": "🍳",
+      "completed": true,
+      "completedAt": "2026-06-21T11:19:52.908Z",
+      "createdAt": "2026-06-21T11:19:43.184Z"
     }
   ],
   "plans": [
@@ -858,5 +935,5 @@
       "createdAt": "2026-06-20T15:27:31.820Z"
     }
   ],
-  "exportedAt": "2026-06-20T15:27:59.201Z"
+  "exportedAt": "2026-06-21T11:20:05.488Z"
 }
