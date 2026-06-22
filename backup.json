@@ -891,6 +891,28 @@
       "completed": true,
       "completedAt": "2026-06-21T11:19:52.908Z",
       "createdAt": "2026-06-21T11:19:43.184Z"
+    },
+    {
+      "id": "mqpbybm3r4ux",
+      "userId": 1,
+      "date": "2026-06-22",
+      "title": "学英语",
+      "category": "学习",
+      "icon": "📝",
+      "completed": true,
+      "completedAt": "2026-06-22T14:48:06.244Z",
+      "createdAt": "2026-06-22T14:48:02.379Z"
+    },
+    {
+      "id": "mqpbybm340jv",
+      "userId": 2,
+      "date": "2026-06-22",
+      "title": "学英语",
+      "category": "学习",
+      "icon": "📝",
+      "completed": false,
+      "completedAt": null,
+      "createdAt": "2026-06-22T14:48:02.379Z"
     }
   ],
   "plans": [
@@ -935,5 +957,5 @@
       "createdAt": "2026-06-20T15:27:31.820Z"
     }
   ],
-  "exportedAt": "2026-06-21T11:20:05.488Z"
+  "exportedAt": "2026-06-22T14:48:11.490Z"
 }
